@@ -1,0 +1,11 @@
+# Ignore .idea #
+################
+.idea*
+
+# Ignore Jupyter notebook checkpoints #
+#######################################
+/code/.ipynb_checkpoints/
+
+# Ignore data directory #
+#########################
+/code/data/
