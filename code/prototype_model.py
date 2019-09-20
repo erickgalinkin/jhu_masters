@@ -2,20 +2,18 @@ import tensorflow as tf
 from tensorflow.keras.models import Sequential
 from tensorflow.keras import layers
 from sklearn.model_selection import train_test_split
+import scipy.signal
 import pandas as pd
 import numpy as np
 
 
 # Configuration options
-BATCH_SIZE = 50
-EPOCHS = 15
+BATCH_SIZE = 10
+EPOCHS = 30
 
 # Data locations
 REQUEST_REPLY_CSV_LOCATION = "./data/requestreply.csv"
 REPLY_REPLY_CSV_LOCATION = "./data/replyreply.csv"
-
-request_reply_df = pd.read_csv(REQUEST_REPLY_CSV_LOCATION, header=None)
-reply_reply_df = pd.read_csv(REPLY_REPLY_CSV_LOCATION, header=None)
 
 
 def df_to_dataset(X, y, shuffle=True, batch_size=32):
@@ -33,7 +31,7 @@ def fix_data(dataset, shuffle=True, batch_size=32):
     labels = dataset.pop("Malicious")
     dataset.drop("appname", axis=1, inplace=True)
     X_trainval, X_test, y_trainval, y_test = train_test_split(dataset, labels, test_size=.15)
-    X_train, X_val, y_train, y_val = train_test_split(X_trainval, y_trainval, test_size=.15)
+    X_train, X_val, y_train, y_val = train_test_split(X_trainval, y_trainval, test_size=.1)
 
     train = df_to_dataset(X_train, y_train, shuffle=shuffle, batch_size=batch_size)
     val = df_to_dataset(X_val, y_val, shuffle=shuffle, batch_size=batch_size)
@@ -68,7 +66,10 @@ def build_conv_model(features):
     model.add(feature_layer)
     model.add(layers.Reshape((100, 1)))
     model.add(layers.Conv1D(64, input_shape=(None, 100), kernel_size=3, strides=1, activation='relu'))
+    model.add(layers.MaxPooling1D(pool_size=2, strides=None, padding='valid'))
     model.add(layers.Conv1D(64, input_shape=(None, 100), kernel_size=3, strides=1, activation='relu'))
+    model.add(layers.MaxPooling1D(pool_size=2, strides=None, padding='valid'))
+    model.add(layers.BatchNormalization())
     model.add(layers.Flatten())
     model.add(layers.Dense(32, activation='relu'))
     model.add(layers.Dense(1, activation='sigmoid'))
@@ -102,6 +103,34 @@ def generate_features(dataset):
     return features
 
 
+def create_fourier_dataset(dataset):
+    columns = dataset.columns.tolist()
+    allowed_cols = columns[2:]
+    fourier_data = dataset[allowed_cols].apply(np.fft.fft)
+    fourier_data["0"] = dataset[0]
+    fourier_data["1"] = dataset[1]
+    return fourier_data
+
+
+def create_wavelet_dataset(dataset):
+    # Using Ricker wavelet
+    columns = dataset.columns.tolist()
+    allowed_cols = columns[2:]
+    # TODO: Fix this functionality by better understanding continuous wavelet transforms
+    wavelet_data = dataset[allowed_cols].apply(scipy.signal.cwt, args=(scipy.signal.ricker, [1, 1, 1, 1]))
+    wavelet_data["0"] = dataset[0]
+    wavelet_data["1"] = dataset[1]
+    return wavelet_data
+
+
+request_reply_df = pd.read_csv(REQUEST_REPLY_CSV_LOCATION, header=None)
+reply_reply_df = pd.read_csv(REPLY_REPLY_CSV_LOCATION, header=None)
+request_reply_fourier = create_fourier_dataset(request_reply_df)
+reply_reply_fourier = create_fourier_dataset(reply_reply_df)
+# request_reply_wavelet = create_wavelet_dataset(request_reply_df)
+# reply_reply_wavelet = create_wavelet_dataset(reply_reply_df)
+
+
 if __name__ == "__main__":
     print("Training fully connected model on request reply data")
     features = generate_features(request_reply_df)
@@ -115,3 +144,40 @@ if __name__ == "__main__":
     features = generate_features(request_reply_df)
     model = build_conv_model(features)
     conv_qr_history, conv_qr_results = train_model(model, request_reply_df)
+    print("Training 1D convolutional model on reply reply data")
+    features = generate_features(reply_reply_df)
+    model = build_conv_model(features)
+    conv_rr_history, conv_rr_results = train_model(model, reply_reply_df)
+    print("Training fully connected model on Fourier request reply data")
+    features = generate_features(request_reply_fourier)
+    model = build_fc_model(features)
+    fourier_fc_qr_history, fourier_fc_qr_results = train_model(model, request_reply_fourier)
+    print("Training fully connected model on Fourier reply reply data")
+    features = generate_features(reply_reply_fourier)
+    model = build_fc_model(features)
+    fourier_fc_rr_history, fourier_fc_rr_results = train_model(model, reply_reply_fourier)
+    print("Training 1D convolutional model on Fourier request reply data")
+    features = generate_features(request_reply_fourier)
+    model = build_conv_model(features)
+    fourier_conv_qr_history, fourier_conv_qr_results = train_model(model, request_reply_fourier)
+    print("Training 1D convolutional model on Fourier reply reply data")
+    features = generate_features(reply_reply_fourier)
+    model = build_conv_model(features)
+    fourier_conv_rr_history, fourier_conv_rr_results = train_model(model, reply_reply_fourier)
+    # print("Training fully connected model on Wavelet request reply data")
+    # features = generate_features(request_reply_wavelet)
+    # model = build_fc_model(features)
+    # wavelet_fc_qr_history, wavelet_fc_qr_results = train_model(model, request_reply_wavelet)
+    # print("Training fully connected model on Wavelet reply reply data")
+    # features = generate_features(reply_reply_wavelet)
+    # model = build_fc_model(features)
+    # wavelet_fc_rr_history, wavelet_fc_rr_results = train_model(model, reply_reply_wavelet)
+    # print("Training 1D convolutional model on Wavelet request reply data")
+    # features = generate_features(request_reply_wavelet)
+    # model = build_conv_model(features)
+    # wavelet_conv_qr_history, wavelet_conv_qr_results = train_model(model, request_reply_wavelet)
+    # print("Training 1D convolutional model on Wavelet reply reply data")
+    # features = generate_features(reply_reply_wavelet)
+    # model = build_conv_model(features)
+    # wavelet_conv_rr_history, wavelet_conv_rr_results = train_model(model, reply_reply_wavelet)
+
