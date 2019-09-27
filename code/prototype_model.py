@@ -2,14 +2,14 @@ import tensorflow as tf
 from tensorflow.keras.models import Sequential
 from tensorflow.keras import layers
 from sklearn.model_selection import train_test_split
-import scipy.signal
 import pandas as pd
 import numpy as np
+import pywt
 
 
 # Configuration options
-BATCH_SIZE = 10
-EPOCHS = 30
+BATCH_SIZE = 100
+EPOCHS = 15
 
 # Data locations
 REQUEST_REPLY_CSV_LOCATION = "./data/requestreply.csv"
@@ -26,18 +26,13 @@ def df_to_dataset(X, y, shuffle=True, batch_size=32):
 
 def fix_data(dataset, shuffle=True, batch_size=32):
     dataset = dataset.copy()
-    dataset.rename(columns={'0': 'Malicious', '1': "appname"}, inplace=True)
-    dataset["Malicious"] = dataset["Malicious"].map({'legit': 0, 'malware': 1}).values
     labels = dataset.pop("Malicious")
-    dataset.drop("appname", axis=1, inplace=True)
-    X_trainval, X_test, y_trainval, y_test = train_test_split(dataset, labels, test_size=.15)
-    X_train, X_val, y_train, y_val = train_test_split(X_trainval, y_trainval, test_size=.1)
+    X_train, X_test, y_train, y_test = train_test_split(dataset, labels, test_size=.2)
 
     train = df_to_dataset(X_train, y_train, shuffle=shuffle, batch_size=batch_size)
-    val = df_to_dataset(X_val, y_val, shuffle=shuffle, batch_size=batch_size)
     test = df_to_dataset(X_test, y_test, shuffle=shuffle, batch_size=batch_size)
 
-    return train, val, test
+    return train, test
 
 
 def build_fc_model(features):
@@ -75,7 +70,7 @@ def build_conv_model(features):
     model.add(layers.Dense(1, activation='sigmoid'))
 
     model.compile(
-        optimizer='adam',
+        optimizer='SGD',
         loss='binary_crossentropy',
         metrics=['accuracy']
     )
@@ -84,10 +79,8 @@ def build_conv_model(features):
 
 
 def train_model(model, data):
-    train, val, test = fix_data(data, shuffle=True, batch_size=BATCH_SIZE)
-    history = model.fit(train,
-                        epochs=EPOCHS,
-                        validation_data=val)
+    train, test = fix_data(data, shuffle=True, batch_size=BATCH_SIZE)
+    history = model.fit(train, epochs=EPOCHS)
 
     print("History: {}".format(history.history))
 
@@ -99,36 +92,48 @@ def train_model(model, data):
 
 def generate_features(dataset):
     dataset.columns = [str(col) for col in dataset.columns]
-    features = [tf.feature_column.numeric_column(col) for col in dataset.columns if col not in ["0", "1"]]
+    features = [tf.feature_column.numeric_column(col) for col in dataset.columns if col not in ["Malicious"]]
     return features
 
 
 def create_fourier_dataset(dataset):
     columns = dataset.columns.tolist()
-    allowed_cols = columns[2:]
-    fourier_data = dataset[allowed_cols].apply(np.fft.fft)
-    fourier_data["0"] = dataset[0]
-    fourier_data["1"] = dataset[1]
+    columns.remove("Malicious")
+    fourier_data = dataset[columns].apply(np.fft.fft)
+    fourier_data["Malicious"] = dataset["Malicious"]
     return fourier_data
 
 
 def create_wavelet_dataset(dataset):
-    # Using Ricker wavelet
+    scales = [1]
+    wavelet = "mexh"
     columns = dataset.columns.tolist()
-    allowed_cols = columns[2:]
-    # TODO: Fix this functionality by better understanding continuous wavelet transforms
-    wavelet_data = dataset[allowed_cols].apply(scipy.signal.cwt, args=(scipy.signal.ricker, [1, 1, 1, 1]))
-    wavelet_data["0"] = dataset[0]
-    wavelet_data["1"] = dataset[1]
+    columns.remove("Malicious")
+    wavelet_data = dataset[columns].apply(pywt.cwt, args=(scales, wavelet), axis=1).to_frame()
+    wavelet_array = []
+    for i in range(wavelet_data.shape[0]):
+        wavelet_array.append(wavelet_data.loc[i][0][0][0])
+    wavelet_data = pd.DataFrame(data=wavelet_array)
+    wavelet_data["Malicious"] = dataset["Malicious"]
     return wavelet_data
 
 
 request_reply_df = pd.read_csv(REQUEST_REPLY_CSV_LOCATION, header=None)
+request_reply_df.columns = [str(col) for col in request_reply_df.columns]
+request_reply_df.drop("1", axis=1, inplace=True)
+request_reply_df.rename(columns={"0": "Malicious"}, inplace=True)
+request_reply_df.replace({"Malicious": {'legit': 0, 'malware': 1}}, inplace=True)
+
 reply_reply_df = pd.read_csv(REPLY_REPLY_CSV_LOCATION, header=None)
+reply_reply_df.columns = [str(col) for col in reply_reply_df.columns]
+reply_reply_df.drop("1", axis=1, inplace=True)
+reply_reply_df.rename(columns={"0": "Malicious"}, inplace=True)
+reply_reply_df.replace({"Malicious": {'legit': 0, 'malware': 1}}, inplace=True)
+
 request_reply_fourier = create_fourier_dataset(request_reply_df)
 reply_reply_fourier = create_fourier_dataset(reply_reply_df)
-# request_reply_wavelet = create_wavelet_dataset(request_reply_df)
-# reply_reply_wavelet = create_wavelet_dataset(reply_reply_df)
+request_reply_wavelet = create_wavelet_dataset(request_reply_df)
+reply_reply_wavelet = create_wavelet_dataset(reply_reply_df)
 
 
 if __name__ == "__main__":
@@ -164,20 +169,20 @@ if __name__ == "__main__":
     features = generate_features(reply_reply_fourier)
     model = build_conv_model(features)
     fourier_conv_rr_history, fourier_conv_rr_results = train_model(model, reply_reply_fourier)
-    # print("Training fully connected model on Wavelet request reply data")
-    # features = generate_features(request_reply_wavelet)
-    # model = build_fc_model(features)
-    # wavelet_fc_qr_history, wavelet_fc_qr_results = train_model(model, request_reply_wavelet)
-    # print("Training fully connected model on Wavelet reply reply data")
-    # features = generate_features(reply_reply_wavelet)
-    # model = build_fc_model(features)
-    # wavelet_fc_rr_history, wavelet_fc_rr_results = train_model(model, reply_reply_wavelet)
-    # print("Training 1D convolutional model on Wavelet request reply data")
-    # features = generate_features(request_reply_wavelet)
-    # model = build_conv_model(features)
-    # wavelet_conv_qr_history, wavelet_conv_qr_results = train_model(model, request_reply_wavelet)
-    # print("Training 1D convolutional model on Wavelet reply reply data")
-    # features = generate_features(reply_reply_wavelet)
-    # model = build_conv_model(features)
-    # wavelet_conv_rr_history, wavelet_conv_rr_results = train_model(model, reply_reply_wavelet)
+    print("Training fully connected model on Wavelet request reply data")
+    features = generate_features(request_reply_wavelet)
+    model = build_fc_model(features)
+    wavelet_fc_qr_history, wavelet_fc_qr_results = train_model(model, request_reply_wavelet)
+    print("Training fully connected model on Wavelet reply reply data")
+    features = generate_features(reply_reply_wavelet)
+    model = build_fc_model(features)
+    wavelet_fc_rr_history, wavelet_fc_rr_results = train_model(model, reply_reply_wavelet)
+    print("Training 1D convolutional model on Wavelet request reply data")
+    features = generate_features(request_reply_wavelet)
+    model = build_conv_model(features)
+    wavelet_conv_qr_history, wavelet_conv_qr_results = train_model(model, request_reply_wavelet)
+    print("Training 1D convolutional model on Wavelet reply reply data")
+    features = generate_features(reply_reply_wavelet)
+    model = build_conv_model(features)
+    wavelet_conv_rr_history, wavelet_conv_rr_results = train_model(model, reply_reply_wavelet)
 
