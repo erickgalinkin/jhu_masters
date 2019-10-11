@@ -8,7 +8,7 @@ import pywt
 
 
 # Configuration options
-BATCH_SIZE = 20
+BATCH_SIZE = 99
 EPOCHS = 30
 
 # Data locations
