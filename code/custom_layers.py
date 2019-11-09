@@ -31,7 +31,7 @@ class FourierConvLayer(Layer):
         x = self.ifft(fourier_x)
         x = tf.convert_to_tensor(x)
         x = tf.cast(x, dtype=tf.float32)
-        return x
+        return tf.nn.relu(x)
 
     def compute_output_shape(self, input_shape):
         return (input_shape[0], self.output_dim)
