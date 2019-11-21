@@ -1,11 +1,15 @@
 \documentclass[10pt]{article}
 \usepackage{amsmath}
 \usepackage{commath}
+\usepackage{algorithm}
+\usepackage{algorithmic}
 \usepackage{url}
 \usepackage{cite}
 \usepackage{amsfonts}
 \usepackage{enumitem}
 \usepackage{todonotes}
+\usepackage{graphicx}
+\graphicspath{{./images/}}
 
 \begin{document}
 
@@ -20,7 +24,7 @@ The effects for a business can be particularly dire, with average cost of a malw
 This problem is continuing to grow, and malware authors innovate in an effort to circumvent existing mitigating controls.
 
 In the case of mobile malware, we often do not have the luxury of running computationally intensive processes on an endpoint and often cannot restrict devices that are brought into our environment.
- Traditional intrusion detection systems like Snort continue to mitigate known threats, but these signature-based systems suffer from the curse of reactivity, and struggle with the move to the cloud~\cite{galinkin2019future} by many threat actors.
+ Traditional intrusion detection systems like Snort continue to mitigate known threats, but these signature-based systems suffer from the curse of reactivity for unknown threats.
  In order to mitigate these threats, controls must be generic enough to block threats which are unknown over any channel.
 
 Our key contribution is an analysis of the impact Fourier and wavelet transforms have on unprocessed data as it relates to neural networks. 
@@ -50,27 +54,60 @@ words words words \todo{Put actual words here}
 Two datasets were examined for the classifier: these were "request-reply" data, and "reply-reply" data.
 Each dataset consisted of 100 measurements of stuff.\todo{Explain what these datasets are}
 
+\subsection{Analysis}
+aaaa
+
 \section{Models}
 The neural networks were written in Python\footnote{Code is available at the following url: \url{https://github.com/erickgalinkin/jhu_masters}}, using the Tensorflow 2.0, PyTorch, and Scikit-learn libraries.
 Only the baseline models described in \ref{other models} used the Scikit-learn library, and only the Wavelet Convolutional network described in \ref{wavelet cnn} used PyTorch.
 The remaining models all used the Tensorflow framework.
+All models were trained and tested on a 2018 MacBook Pro with 32GB of RAM and a 2.9GHz Intel Core i9 processor.
+Given the small size of the data and relative simplicity of the models, GPU acceleration was not needed.
 
-\subsection{Fully-Connected Feedforward Neural Network}
-aaaa
+\subsection{Standard Fully-Connected Neural Network}
+The fully-connected neural network architecture accepts, as input, a 1x100 row-vector. 
+This vector is then fed to three densely connected layers, each with 256 ReLU-activated neurons.
+The output neuron is a single sigmoid-activated neuron, which provides a probability of traffic being benign.
 
 \subsection{Standard Convolutional Neural Network}
-aaaa
+Our standard convolutional neural network is a sequential model which accepts the same sort of input as our fully-connected neural network, and passes it to an architecture comprised of two convolution and max-pooling blocks, followed by batch normalization, and then passed to two densely connected layers of 128 neurons each. The architecture is visualized below in \ref{convolutional neural network}
+
+\begin{figure}
+\includegraphics[width=\textwidth]{conv_architecture}
+\centering
+\end{figure}
 
 \subsection{Fourier Convolutional Neural Network}
-aaaa
+The Fourier Convolutional Neural Network leverages a custom "Fourier Layer", which moves the data into Fourier space via the Fast Fourier Transform before it performs a dot product on the input to the neuron.
+Specifically, given an input $X^{(n)}$ and an output $A$, where the superscript is not an exponent, but instead indicates the layer of the input, the Fourier layer, $\ell$ acts on $X$: 
+\begin{align*}
+X^{(n+1)} & = a \\
+& = \ell^{(n)}(X^{(n)}) \\
+& = \sigma(\mathcal{F}^{-1}(\mathcal{F}(X^{(n)})\cdot \mathbf{W}^{(n)\top}))
+\end{align*}
+
+Where $\mathcal{F}$ is the Fast Fourier Transform, $\sigma$ is the activation function - ReLU in this case - and $\mathbf{W}$ is the weight matrix for layer n.
+
+\begin{algorithm}
+\caption{Fourier Layer}
+\label{Fourier layer}
+\begin{algorithmic}[1]
+\REQUIRE $X, W \in \mathbb{C}^{mxn}, \beta \in \mathbb{C}^m$
+\ENSURE $X \neq 0$
+\STATE Perform Fourier transform on input data: $\mathcal{F}(X^{(n)})$
+\STATE Take dot product of input data and weight matrix: $\mathcal{F}(X^{(n)})\cdot \mathbf{W}^{(n)\top}$
+\STATE Perform Inverse Fourier transform on the dot product: $\mathcal{F}(\mathcal{F}(X^{(n)})\cdot \mathbf{W}^{(n)\top})$
+\STATE Apply ReLU activation: $a = \sigma(\mathcal{F}^{-1}(\mathcal{F}(X^{(n)})\cdot \mathbf{W}^{(n)\top}))$
+\STATE Return $a$
+\end{algorithmic}
+\end{algorithm}
+
+Our Fourier ``Convolutional'' neural network - it is effectively a convolution, but no actual convolution operation occurs - is a mirror image of our standard convolutional neural network, only with the convolutional layers replaced by Fourier layers. 
 
 \subsection{Wavelet Convolutional Neural Network} \label{wavelet cnn}
 aaaa
 
 \subsection{Other Models} \label{other models}
-aaaa
-
-\subsection{Analysis}
 aaaa
 
 \section{Results}
@@ -83,7 +120,11 @@ aaaa
 aaaa
 
 \section{Ongoing Work}
-aaaa
+Based on the difficulty and apparent inefficiency on small datasets of the Fourier and Wavelet neural networks, alternate activation functions were considered. 
+However, finding good spectral activation functions is still an open research question.
+Pennec and Arsigny~\cite{pennec2013information} suggest that in high dimensional spaces, we can view our data as a manifold and thereby consider the Riemannian center of mass or \textit{Frechet mean} of the manifold.
+Further research by Chakraborty \textit{et al.}~\cite{chakraborty2019surreal} suggests that in manifold-valued data, the possibility of using the tangent-ReLU activation function may make it feasible to move the data to and from the Fourier domain only once per pass through the network, instead of once per layer.
+At this point, none of these techniques have been implemented in code, and our data may be too simple to fully validate the efficacy of these techniques.
 
 \section{Conclusion}
 aaaa
