@@ -1,0 +1,94 @@
+\documentclass[10pt]{article}
+\usepackage{amsmath}
+\usepackage{commath}
+\usepackage{url}
+\usepackage{cite}
+\usepackage{amsfonts}
+\usepackage{enumitem}
+\usepackage{todonotes}
+
+\begin{document}
+
+\title{Applied and Computational Mathematics Master's Thesis Semester Report}
+\author{Erick Galinkin}
+\maketitle
+
+\section{Introduction}
+Malicious software (malware), has long been a burden on users of computers and of  the internet.
+For individuals, a malware attack can cause the loss of their personal data and may allow hackers to access their bank accounts, steal their identity, or hold all of the files on their computer ransom.
+The effects for a business can be particularly dire, with average cost of a malware attack sitting at \$1.7 million~\cite{seals2019threatlist}.
+This problem is continuing to grow, and malware authors innovate in an effort to circumvent existing mitigating controls.
+
+In the case of mobile malware, we often do not have the luxury of running computationally intensive processes on an endpoint and often cannot restrict devices that are brought into our environment.
+ Traditional intrusion detection systems like Snort continue to mitigate known threats, but these signature-based systems suffer from the curse of reactivity, and struggle with the move to the cloud~\cite{galinkin2019future} by many threat actors.
+ In order to mitigate these threats, controls must be generic enough to block threats which are unknown over any channel.
+
+Our key contribution is an analysis of the impact Fourier and wavelet transforms have on unprocessed data as it relates to neural networks. 
+This is achieved through an analysis of the efficiency and accuracy of a neural network that can detect the presence of malware on a mobile device without the need for an agent on the endpoint.
+We compare this to a baseline random forest result and seek to explain what the network has learned and why different networks performance varies.
+
+At the present time, the results may be divided into two categories:
+\begin{enumerate}
+\item Results on the augmented data associated with Watkins \textit{et al.}~\cite{watkins2018network} which suggest that a decision tree or other statistical learning method may be superior to a neural network and are explained below in section \ref{malware classifier}.
+\item Analysis of how the representation of the data impacts the accuracy of a neural network and are explained in section \ref{data representation}
+\end{enumerate}
+
+\section{Previous Research}
+The most significantly related previous research was conducted by Watkins \textit{et al.}~\cite{watkins2018network}.
+This research yielded detections of mobile malware as the result of ping delays caused by CPU throttling in Android phones and an augmented version of their data set forms the basis for our research.
+In the Watkins literature, a decision tree algorithm within the WEKA package was used to classify the traffic.
+Similarly, we use a random forest from the Scikit-learn~\cite{scikit-learn} Python package as a baseline model.
+
+Deep neural networks have been applied to related problems in information security, particularly detecting malicious executables on endpoints~\cite{raff2018malware} using techniques from natural language processing.
+This research, conducted at Nvidia labs worked well at the endpoint, examining static properties of malicious and benign executables to draw determinations about the software from byte sequences.
+Additionally, the strength of transfer learning in this domain has been observed in similar cases~\cite{galinkin2019shape} where convolutional neural networks were used to detect malicious code compiled for different architectures.
+This suggests that byte sequence analysis may also be promising for convicting malicious network traffic.
+
+words words words \todo{Put actual words here}
+
+\section{Data}
+Two datasets were examined for the classifier: these were "request-reply" data, and "reply-reply" data.
+Each dataset consisted of 100 measurements of stuff.\todo{Explain what these datasets are}
+
+\section{Models}
+The neural networks were written in Python\footnote{Code is available at the following url: \url{https://github.com/erickgalinkin/jhu_masters}}, using the Tensorflow 2.0, PyTorch, and Scikit-learn libraries.
+Only the baseline models described in \ref{other models} used the Scikit-learn library, and only the Wavelet Convolutional network described in \ref{wavelet cnn} used PyTorch.
+The remaining models all used the Tensorflow framework.
+
+\subsection{Fully-Connected Feedforward Neural Network}
+aaaa
+
+\subsection{Standard Convolutional Neural Network}
+aaaa
+
+\subsection{Fourier Convolutional Neural Network}
+aaaa
+
+\subsection{Wavelet Convolutional Neural Network} \label{wavelet cnn}
+aaaa
+
+\subsection{Other Models} \label{other models}
+aaaa
+
+\subsection{Analysis}
+aaaa
+
+\section{Results}
+aaaa
+
+\subsection{Malware Classifier} \label{malware classifier}
+aaaa
+
+\subsection{Data Representation and Neural Networks} \label{data representation}
+aaaa
+
+\section{Ongoing Work}
+aaaa
+
+\section{Conclusion}
+aaaa
+
+\bibliography{bibtex}
+\bibliographystyle{siam}
+
+\end{document}
