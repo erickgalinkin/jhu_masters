@@ -134,7 +134,7 @@ def create_fourier_dataset(dataset):
     return fourier_data
 
 
-def create_wavelet_dataset(dataset):
+def create_continuous_wavelet_dataset(dataset):
     scales = [1]
     wavelet = "mexh"
     columns = dataset.columns.tolist()
@@ -146,6 +146,19 @@ def create_wavelet_dataset(dataset):
     wavelet_data = pd.DataFrame(data=wavelet_array)
     wavelet_data["Malicious"] = dataset["Malicious"]
     return wavelet_data
+
+
+def create_discrete_wavelet_dataset(dataset):
+    columns = dataset.columns.tolist()
+    columns.remove("Malicious")
+
+    discrete_wavelet_data = pywt.dwt(dataset[columns], "haar")
+    wavelet_array = []
+    for i in range(discrete_wavelet_data.shape[0]):
+        wavelet_array.append(discrete_wavelet_data.loc[i][0][0][0])
+    discrete_wavelet_data = pd.DataFrame(data=wavelet_array)
+    discrete_wavelet_data["Malicious"] = dataset["Malicious"]
+    return discrete_wavelet_data
 
 
 request_reply_df = pd.read_csv(REQUEST_REPLY_CSV_LOCATION, header=None)
@@ -162,13 +175,15 @@ reply_reply_df.replace({"Malicious": {'legit': 0, 'malware': 1}}, inplace=True)
 
 request_reply_fourier = create_fourier_dataset(request_reply_df)
 reply_reply_fourier = create_fourier_dataset(reply_reply_df)
-request_reply_wavelet = create_wavelet_dataset(request_reply_df)
-reply_reply_wavelet = create_wavelet_dataset(reply_reply_df)
+request_reply_cwavelet = create_continuous_wavelet_dataset(request_reply_df)
+reply_reply_cwavelet = create_continuous_wavelet_dataset(reply_reply_df)
+request_reply_dwavelet = create_discrete_wavelet_dataset(request_reply_df)
+reply_reply_dwavelet = create_discrete_wavelet_dataset(reply_reply_df)
 
 
 if __name__ == "__main__":
-    print("Training 1D FCNN model on request reply data")
-    features = generate_features(request_reply_df)
-    model = fourier_model(features)
+    print("Training model on wavelet request reply data")
+    features = generate_features(request_reply_dwavelet)
+    model = build_conv_model(features)
     fourier_qr_history, fourier_qr_results = train_model(model, request_reply_df)
 
