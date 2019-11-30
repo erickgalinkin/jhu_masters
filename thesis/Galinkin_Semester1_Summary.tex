@@ -63,12 +63,21 @@ Given the large number of wavelets that exist, two different mother wavelets wer
 Summary statistics for these 8 datasets are in Table~\ref{Tab:summary}. 
 For the non-raw datasets, only the first word of the transformed dataset is included (\textit{e.g.}, Fourier Transformed Request-Reply becomes ``Fourier Request'')
 
-\begin{table*}[ht]
+\begin{table}[]
 \caption{Summary Statistics for Datasets}
 \centering
 \label{Tab:summary}	
-\end{table*}
 
+\begin{tabular}{lllll}
+\textbf{Dataset Name} & \textbf{Dataset Mean} & \textbf{Dataset Median} & \textbf{Mean Variance} & \textbf{Median Variance} \\
+Request-Reply         & 27.43                 & 10.07                   & 8329.96                & 7663.89                  \\
+Reply-Reply           & 98.52                 & 100.93                  & 2688.85                & 2465.29                  \\
+Fourier Request       & 58.60*                & -1.45                   & 12229005.34            & 7418186.12               \\
+Fourier Reply         & 100.19*               & -6.82                   & 119373138.03           & 122613924.30             \\
+Wavelet Request       & 1.30                  & -.072                   & 1887.5                 & 1507.16                  \\
+Wavelet Reply         & 1.03                  & 0.12                    & 2224.56                & 2135.86                 
+\end{tabular}
+\end{table}
 
 \subsection{Analysis}
 aaaa
