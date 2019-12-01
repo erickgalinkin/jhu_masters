@@ -6,6 +6,8 @@
 \usepackage{url}
 \usepackage{cite}
 \usepackage{amsfonts}
+\usepackage{footnote}
+\usepackage{footmisc}
 \usepackage{enumitem}
 \usepackage{todonotes}
 \usepackage{graphicx}
@@ -43,51 +45,69 @@ This research yielded detections of mobile malware as the result of ping delays 
 In the Watkins literature, a decision tree algorithm within the WEKA package was used to classify the traffic.
 Similarly, we use a random forest from the Scikit-learn~\cite{scikit-learn} Python package as a baseline model.
 
-Deep neural networks have been applied to related problems in information security, particularly detecting malicious executables on endpoints~\cite{raff2018malware} using techniques from natural language processing.
+Deep neural networks have been applied to related problems in information security, particularly detecting malicious executables on endpoints~\cite{raff2018malware} using techniques from natural language processing and computer vision.
 This research, conducted at Nvidia labs worked well at the endpoint, examining static properties of malicious and benign executables to draw determinations about the software from byte sequences.
-Additionally, the strength of transfer learning in this domain has been observed in similar cases~\cite{galinkin2019shape} where convolutional neural networks were used to detect malicious code compiled for different architectures.
-This suggests that byte sequence analysis may also be promising for convicting malicious network traffic.
 
-words words words \todo{Put actual words here}
+The use of Fourier transforms in neural networks has been of interest for some time and there are several papers on the subject~\cite{osowski2002fourier, pratt2017fcnn, highlander2016very} which consider these applications.
+We lean most heavily on the paper by Pratt \textit{et al.}~\cite{pratt2017fcnn} due to its recency and implementation details. 
+Particularly, this paper considers the impact of the convolution theorem within neural networks and uses the Fast Fourier Transform to quickly compute $\mathcal{F}(\kappa * u) = \mathcal{F}(\kappa) \odot \mathcal{F}(u)$ where $\mathcal{F}$ is the Fast Fourier Transform, $*$ denotes convolution, and $\odot$ denotes the Hadamard Pointwise Product.
+This method is much faster since it requires significantly fewer computational operations than the more traditional sliding kernel method.
+They also describe a Fourier Pooling Layer to reduce the data size while retaining information by truncating the boundaries of the matrices.
+Ultimately, the paper shows that on the CIFAR-10 and MNIST datasets, the overall accuracy is lower than benchmark results - though the network trains and evaluates images much more quickly.
 
-\section{Data}
+Wavelet neural networks pioneered by Fujieda \textit{et al.}~\cite{fujieda2017wavelet} have shown promise for generalized pooling and convolution by abstracting them into downsampling and filtering in the spectral domain.
+The results in the Fujieda paper were significant, as the network achieved better accuracy results than AlexNet on the target dataset while having approximately 1/4 the number of parameters.
+In addition, the memory requirements and speed of the network were a significant improvement on the other architectures considered by Fujieda.
+It is worth noting that implementation details for the paper are sparse, and so our implementation may differ from this reference implementation. 
+
+\section{Android App Data}
 The data were collected from 123 free Android apps downloaded from the Google Play store. 
 Of these apps, 68 were benign and 55 were malicious.
 The specific methods for collecting the data and classifying the samples is detailed in Watkins \textit{et al.}~\cite{watkins2018network}
 Two datasets were examined for the classifier: these were ``request-reply'' data, and ``reply-reply'' data.
 The request-reply data is the latency between a ping request being sent and a reply being received - 100 of these measurements were collected per sample.
 The reply-reply data is quite similar except that the data measured the latency between a reply and a subsequent reply.
+% In the final report, we likely want to spell out the Fourier Transform and the continuous wavelet transform.
+% That will probably be its own section.
 
 In addition to these two raw datasets, we also examined the Fourier transform of the datasets and a wavelet transform of the datasets. 
-Given the large number of wavelets that exist, two different mother wavelets were considered: the Ricker wavelet and the Haar wavelet.
-Summary statistics for these 8 datasets are in Table~\ref{Tab:summary}. 
+Given the large number of wavelets that exist, we chose the Ricker wavelet as the mother wavelet for the data transform due to how friendly it was with the data.
+It is possible that an alternative, optimal wavelet exists, but Ricker was sufficient for this experiment.
+It is also noteworthy that due to the difficulty in inverting a continuous wavelet transform, a different wavelet (namely, the Haar Wavelet) was chosen for the wavelet neural network described in section \ref{wavelet cnn}.
+Summary statistics for the aforementioned 6 datasets are in Table~\ref{Tab:summary}. 
 For the non-raw datasets, only the first word of the transformed dataset is included (\textit{e.g.}, Fourier Transformed Request-Reply becomes ``Fourier Request'')
 
-\begin{table}[]
-\caption{Summary Statistics for Datasets}
+\subsection{Analysis}
+One interesting effect of performing the transforms on the dataset is that while the continuous wavelet transform reduces our variance significantly and slightly normalizes the dataset, the Fourier transform has the opposite effect, introducing tremendous amounts of noise into the dataset.
+As we discuss in section~\ref{data representation}, this likely has a meaningful impact on how much the network can learn, and may also explain some of the results found by Pratt \textit{et al.}~\cite{pratt2017fcnn}.
+
+\renewcommand{\thefootnote}{*} 
+\begin{table}[h]
+\caption{Dataset Summary Statistics}
 \centering
 \label{Tab:summary}	
-
-\begin{tabular}{lllll}
-\textbf{Dataset Name} & \textbf{Dataset Mean} & \textbf{Dataset Median} & \textbf{Mean Variance} & \textbf{Median Variance} \\
-Request-Reply         & 27.43                 & 10.07                   & 8329.96                & 7663.89                  \\
-Reply-Reply           & 98.52                 & 100.93                  & 2688.85                & 2465.29                  \\
-Fourier Request       & 58.60*                & -1.45                   & 12229005.34            & 7418186.12               \\
-Fourier Reply         & 100.19*               & -6.82                   & 119373138.03           & 122613924.30             \\
-Wavelet Request       & 1.30                  & -.072                   & 1887.5                 & 1507.16                  \\
-Wavelet Reply         & 1.03                  & 0.12                    & 2224.56                & 2135.86                 
+\begin{tabular}{l|llll}
+\textbf{Dataset Name} & \textbf{Mean} & \textbf{Median} & \textbf{Mean Var.} & \textbf{Median Var.} \\\cline{1-5}
+Request-Reply         & 27.43    & 10.07    & 8329.96    & 7663.89 \\
+Reply-Reply           & 98.52    & 100.93   & 2688.85    & 2465.29 \\
+Fourier Request       & 58.60\footnotemark    & -1.45    & 12229005.34    & 7418186.12 \\
+Fourier Reply         & 100.19\footnotemark    & -6.82    & 119373138.03    & 122613924.30 \\
+Wavelet Request       & 1.30    & -.072    & 1887.5    & 1507.16 \\
+Wavelet Reply         & 1.03    & 0.12    & 2224.56    & 2135.86                 
 \end{tabular}
 \end{table}
+\footnotetext{There is an extremely small, but non-zero imaginary part, on the order of $10^{-19}i$}
 
-\subsection{Analysis}
-aaaa
+\renewcommand{\thefootnote}{1}
 
 \section{Models}
-The neural networks were written in Python\footnote{Code is available at the following url: \url{https://github.com/erickgalinkin/jhu_masters}}, using the Tensorflow 2.0, PyTorch, and Scikit-learn libraries.
+All code\footnote{Code is available at the following url: \url{https://github.com/erickgalinkin/jhu_masters}} was written in Python, using the Tensorflow 2.0, PyTorch, and Scikit-learn libraries.
 Only the baseline models described in \ref{other models} used the Scikit-learn library, and only the Wavelet Convolutional network described in \ref{wavelet cnn} used PyTorch.
 The remaining models all used the Tensorflow framework.
 All models were trained and tested on a 2018 MacBook Pro with 32GB of RAM and a 2.9GHz Intel Core i9 processor.
 Given the small size of the data and relative simplicity of the models, GPU acceleration was not needed.
+The sections here describe only the details of the architecture.
+An overview of the machine learning algorithms is provided in appendix~\ref{ml algo}, and a more thorough treatment is available in Hastie~\cite{hastie01statisticallearning} or James~\cite{james14introduction}
 
 \subsection{Standard Fully-Connected Neural Network}
 The fully-connected neural network architecture accepts, as input, a 1x100 row-vector. 
@@ -97,7 +117,7 @@ The output neuron is a single sigmoid-activated neuron, which provides a probabi
 \subsection{Standard Convolutional Neural Network}
 Our standard convolutional neural network is a sequential model which accepts the same sort of input as our fully-connected neural network, and passes it to an architecture comprised of two convolution and max-pooling blocks, followed by batch normalization, and then passed to two densely connected layers of 128 neurons each. The architecture is visualized below in figure \ref{fig:conv net}.
 
-\begin{figure}[h]
+\begin{figure}[ht]
 \caption{Standard Convolutional Neural Network Architecture}
 \label{fig:conv net}
 \includegraphics[width=\textwidth]{conv_architecture}
@@ -129,13 +149,24 @@ Where $\mathcal{F}$ is the Fast Fourier Transform, $\sigma$ is the activation fu
 \end{algorithmic}
 \end{algorithm}
 
-Our Fourier ``Convolutional'' neural network - it is effectively a convolution, but no actual convolution operation occurs - is a mirror image of our standard convolutional neural network, only with the convolutional layers replaced by Fourier layers. 
+Our Fourier ``Convolutional'' neural network is a mirror image of our standard convolutional neural network, only with the convolutional layers replaced by Fourier layers.
+Here, we put the word convolutional in scare quotes due to the fact that no actual convolution is performed and thus it is a misnomer.
+To be more intellectually honest, we should refer to this network instead as a ``Fourier Transform Inner Product Network'', though this may confuse readers unfamiliar with the relationship.
+In the interest of broad understanding, the term convolutional neural network is used when it helps elucidate meaning even in spite of being a slight misnomer.
 
 \subsection{Wavelet Convolutional Neural Network} \label{wavelet cnn}
-aaaa
+As previously mentioned, the continuous wavelet transform is challenging to invert, since it is not always uniquely invertible - the details of this are contained in appendix~\ref{inverse cwt}.
+As such, despite using a continuous wavelet transform with the Ricker wavelet for our dataset, we use the Discrete Fourier Transform in our neural network due to its relative ease of invertibility
 
 \subsection{Other Models} \label{other models}
-aaaa
+Two baseline models were considered.
+The first is the random forest model provided in the Scikit-learn library with no hyperparameter tuning.
+Decision tree models are generally good at classification tasks~\cite{hastie01statisticallearning} but are weak classifiers which are sensitive to variance.
+Random forests are a the result of averaging a large collection of de-correlated trees and provide a good benchmark as a na\"ive model - in the respect that it is untuned - for classification.
+
+The other benchmark model is a Support Vector Classifier, again provided by the Scikit-learn library.
+The rationale for using a Support Vector Machine is that we wanted to see if some hyperplane could be learned which would separate the data.
+This model was again, na\"ive in the respect that it was merely the ``out of the box'' model, and so the classifier was built on top of the radial basis function kernel.
 
 \section{Results}
 aaaa
@@ -149,14 +180,31 @@ aaaa
 \section{Ongoing Work}
 Based on the difficulty and apparent inefficiency on small datasets of the Fourier and Wavelet neural networks, alternate activation functions were considered. 
 However, finding good spectral activation functions is still an open research question.
+In their paper on deep complex networks, Trabelsi \textit{et al.}~\cite{trabelsi2017deep} use the Complex ReLU ($\mathbb{C}$Relu) and so-called $z$ReLU functions. 
+Neither of these have yet been tried on the complex-valued data in the Fourier or Wavelet neural networks.
 Pennec and Arsigny~\cite{pennec2013information} suggest that in high dimensional spaces, we can view our data as a manifold and thereby consider the Riemannian center of mass or \textit{Frechet mean} of the manifold.
 Further research by Chakraborty \textit{et al.}~\cite{chakraborty2019surreal} suggests that in manifold-valued data, the possibility of using the tangent-ReLU activation function may make it feasible to move the data to and from the Fourier domain only once per pass through the network, instead of once per layer.
 At this point, none of these techniques have been implemented in code, and our data may be too simple to fully validate the efficacy of these techniques.
 
+In order to remedy some of the hurdles of this dataset, we also plan to try these on more standard computer vision tasks, specifically the CIFAR-10~\cite{krizhevsky2009learning} dataset. 
+By using more traditional benchmarks, we can also better contextualize our results here, and how the Fourier and Wavelet networks perform on these tasks.
+This work will likely be time consuming, but is still feasible within our time constraints.
+
+Although there is significant ongoing work, the bulk of the research allows us to conclude that for this dataset, the best classifier is likely some kind of decision tree.
+It may be fruitful to find an optimal decision tree classifier, pair it with the script which generated the data, and treat those results separately as a conference or journal paper. 
+That decision remains to be made at the time of this writing.
+
 \section{Conclusion}
-aaaa
+asdf
 
 \bibliography{bibtex}
 \bibliographystyle{siam}
+
+\appendix
+\section{Description of Machine Learning Algorithms}\label{ml algo}
+asdfasdfasdf
+
+\section{Non-Uniqueness of Inverse Continuous Wavelet Transform}\label{inverse cwt}
+asdf
 
 \end{document}
