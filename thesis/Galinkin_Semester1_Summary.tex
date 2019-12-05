@@ -62,18 +62,18 @@ It is worth noting that implementation details for the paper are sparse, and so 
 
 \section{Android App Data}
 The data were collected from 123 free Android apps downloaded from the Google Play store. 
-Of these apps, 68 were benign and 55 were malicious.
+Of these apps, 68 were classified benign and 55 were classified malicious.
 The specific methods for collecting the data and classifying the samples is detailed in Watkins \textit{et al.}~\cite{watkins2018network}
 Two datasets were examined for the classifier: these were ``request-reply'' data, and ``reply-reply'' data.
 The request-reply data is the latency between a ping request being sent and a reply being received - 100 of these measurements were collected per sample.
 The reply-reply data is quite similar except that the data measured the latency between a reply and a subsequent reply.
 % In the final report, we likely want to spell out the Fourier Transform and the continuous wavelet transform.
-% That will probably be its own section.
+% That will probably be its own section, maybe an appendix? 
 
 In addition to these two raw datasets, we also examined the Fourier transform of the datasets and a wavelet transform of the datasets. 
-Given the large number of wavelets that exist, we chose the Ricker wavelet as the mother wavelet for the data transform due to how friendly it was with the data.
-It is possible that an alternative, optimal wavelet exists, but Ricker was sufficient for this experiment.
-It is also noteworthy that due to the difficulty in inverting a continuous wavelet transform, a different wavelet (namely, the Haar Wavelet) was chosen for the wavelet neural network described in section \ref{wavelet cnn}.
+Given the large number of wavelets that exist, we chose the Morlet wavelet as the mother wavelet for the data transform due to how friendly it was with the data and the fact that it is uniquely invertible.
+It is also noteworthy that due to the difficulty in inverting a continuous wavelet transform (See Appendix~\ref{inverse cwt}), a different wavelet - namely, the Haar Wavelet - was chosen for the wavelet neural network described in section \ref{wavelet cnn}.
+
 Summary statistics for the aforementioned 6 datasets are in Table~\ref{Tab:summary}. 
 For the non-raw datasets, only the first word of the transformed dataset is included (\textit{e.g.}, Fourier Transformed Request-Reply becomes ``Fourier Request'')
 
@@ -155,8 +155,10 @@ To be more intellectually honest, we should refer to this network instead as a `
 In the interest of broad understanding, the term convolutional neural network is used when it helps elucidate meaning even in spite of being a slight misnomer.
 
 \subsection{Wavelet Convolutional Neural Network} \label{wavelet cnn}
-As previously mentioned, the continuous wavelet transform is challenging to invert, since it is not always uniquely invertible - the details of this are contained in appendix~\ref{inverse cwt}.
-As such, despite using a continuous wavelet transform with the Ricker wavelet for our dataset, we use the Discrete Fourier Transform in our neural network due to its relative ease of invertibility
+The Wavelet Convolutional Neural Network implements similar functionality to our Fourier Neural Network, using the Continuous Wavelet Transform in lieu of the Fourier transform.
+Due to the fact that there is a time component and a frequency component, the wavelet neural network has a higher dimensionality than our other models. 
+
+
 
 \subsection{Other Models} \label{other models}
 Two baseline models were considered.
@@ -169,33 +171,60 @@ The rationale for using a Support Vector Machine is that we wanted to see if som
 This model was again, na\"ive in the respect that it was merely the ``out of the box'' model, and so the classifier was built on top of the radial basis function kernel.
 
 \section{Results}
-aaaa
+Here, our results are divided into two sections. 
+The first considers the efficacy of the malware classifier and where certain improvements could be made.
+The second section considers how the internal and external representation of our datasets influenced the ability of the neural network to learn.
 
 \subsection{Malware Classifier} \label{malware classifier}
-aaaa
+As shown in Table~\ref{Tab:test}, the Random forest classifier outperforms all of the neural network and support vector machine architectures.
+It is also noteworthy that the Fourier-transformed data fed to the convolutional Neural Network appears to misclassify an extremely high percentage of samples, and by flipping the labels on the test samples, we actually achieve 72.6\% accuracy, making it our second most accurate neural network classifier.
 
+ 
+\begin{table}[h]
+\caption{Android App Data Test Results}
+\centering
+\label{Tab:test}	
+\begin{tabular}{lll}
+Data and Architecture Combination & Test Accuracy & mean step time (ms) \\
+Raw, Fully-Connected NN           & 62.60\%         & 13                  \\
+Raw, Convolutional NN             & 72.89\%         & 54                  \\
+Fourier, Fully-Connected NN       & 55.28\%       & 12                  \\
+Fourier, Convolutional NN         & 27.40\%         & 56                  \\
+Wavelet, Fully-Connected NN       & 61.95\%         & 12                  \\
+Wavelet, Convolutional NN         & 70.77\%         & 52                  \\
+Raw, Fourier NN                   & 66.59\%         & 553                 \\
+Raw, Wavelet NN                   & 00.00\%*        & 000*                \\
+Raw, Random Forest                & 79.80\%         & N/A                 \\
+Raw, Support Vector Classifier    & 55.28\%         & N/A                
+\end{tabular}
+\end{table}
+ 
 \subsection{Data Representation and Neural Networks} \label{data representation}
 aaaa
 
-\section{Ongoing Work}
-Based on the difficulty and apparent inefficiency on small datasets of the Fourier and Wavelet neural networks, alternate activation functions were considered. 
+\section{Conclusions and Ongoing Work}
+Overall, the results are interesting, even if they do not immediately improve on the state-of-the-art. 
+Neural networks are well-understood to be data-intensive, and the scale of data associated with the Android App Dataset is likely not sufficiently large for a neural network to appropriately converge. 
+The convolutional neural network approaches the performance of the untuned random forest algorithm but does not achieve the same level of accuracy.
+Additionally, the random forest algorithm is much faster to train, and requires no advanced hyperparameter tuning.
+We will continue to make improvements to the networks and also test our architectures on different datasets, as explained below.
+
+Based on the difficulty and apparent inefficiency on small datasets of the Fourier and Wavelet neural networks, alternate activation functions are being considered. 
 However, finding good spectral activation functions is still an open research question.
 In their paper on deep complex networks, Trabelsi \textit{et al.}~\cite{trabelsi2017deep} use the Complex ReLU ($\mathbb{C}$Relu) and so-called $z$ReLU functions. 
 Neither of these have yet been tried on the complex-valued data in the Fourier or Wavelet neural networks.
+
 Pennec and Arsigny~\cite{pennec2013information} suggest that in high dimensional spaces, we can view our data as a manifold and thereby consider the Riemannian center of mass or \textit{Frechet mean} of the manifold.
 Further research by Chakraborty \textit{et al.}~\cite{chakraborty2019surreal} suggests that in manifold-valued data, the possibility of using the tangent-ReLU activation function may make it feasible to move the data to and from the Fourier domain only once per pass through the network, instead of once per layer.
 At this point, none of these techniques have been implemented in code, and our data may be too simple to fully validate the efficacy of these techniques.
 
-In order to remedy some of the hurdles of this dataset, we also plan to try these on more standard computer vision tasks, specifically the CIFAR-10~\cite{krizhevsky2009learning} dataset. 
+In order to remedy some of the hurdles of this dataset, we also plan to try these on computer vision tasks, specifically the CIFAR-10~\cite{krizhevsky2009learning} dataset, as it will provide a higher dimensional dataset. 
 By using more traditional benchmarks, we can also better contextualize our results here, and how the Fourier and Wavelet networks perform on these tasks.
 This work will likely be time consuming, but is still feasible within our time constraints.
 
 Although there is significant ongoing work, the bulk of the research allows us to conclude that for this dataset, the best classifier is likely some kind of decision tree.
-It may be fruitful to find an optimal decision tree classifier, pair it with the script which generated the data, and treat those results separately as a conference or journal paper. 
+It may be fruitful to find a well-tuned decision tree classifier, pair it with the script which generated the data, and treat those results separately as a conference or journal paper. 
 That decision remains to be made at the time of this writing.
-
-\section{Conclusion}
-asdf
 
 \bibliography{bibtex}
 \bibliographystyle{siam}
@@ -203,8 +232,4 @@ asdf
 \appendix
 \section{Description of Machine Learning Algorithms}\label{ml algo}
 asdfasdfasdf
-
-\section{Non-Uniqueness of Inverse Continuous Wavelet Transform}\label{inverse cwt}
-asdf
-
 \end{document}

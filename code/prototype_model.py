@@ -61,7 +61,7 @@ def build_conv_model(features):
     model.add(feature_layer)
     model.add(layers.Reshape((100, 1)))
     model.add(layers.Conv1D(256, input_shape=(None, 100), kernel_size=5, strides=1, activation='relu'))
-    model.add(layers.MaxPooling1D(pool_size=2, strides=1, padding='valid'))
+    model.add(layers.MaxPooling1D(pool_size=2, strides=2, padding='valid'))
     model.add(layers.Conv1D(256, input_shape=(None, 100), kernel_size=3, strides=2, activation='relu'))
     model.add(layers.MaxPooling1D(pool_size=2, strides=None, padding='valid'))
     model.add(layers.BatchNormalization())
@@ -86,9 +86,9 @@ def fourier_model(features):
     model.add(feature_layer)
     model.add(layers.Reshape((100, 1)))
     model.add(FourierConvLayer(256, autocast=False))
-    model.add(layers.MaxPooling1D(pool_size=2, strides=1, padding='valid'))
+    model.add(layers.MaxPooling1D(pool_size=2, strides=2, padding='valid'))
     model.add(FourierConvLayer(256, autocast=False))
-    model.add(layers.MaxPooling1D(pool_size=2, strides=1, padding='valid'))
+    model.add(layers.MaxPooling1D(pool_size=2, strides=None, padding='valid'))
     model.add(layers.BatchNormalization())
     model.add(layers.Flatten())
     model.add(layers.Dense(128, activation='relu'))
@@ -108,9 +108,9 @@ def wavelet_model(features):
     pass
 
 
-def train_model(model, data):
+def train_model(model, data, train_epoch=EPOCHS):
     train, test = fix_data(data, shuffle=True, batch_size=BATCH_SIZE)
-    history = model.fit(train, epochs=EPOCHS)
+    history = model.fit(train, epochs=train_epoch)
 
     print("History: {}".format(history.history))
 
@@ -136,7 +136,7 @@ def create_fourier_dataset(dataset):
 
 def create_continuous_wavelet_dataset(dataset):
     scales = [1]
-    wavelet = "mexh"
+    wavelet = "morl"
     columns = dataset.columns.tolist()
     columns.remove("Malicious")
     wavelet_data = dataset[columns].apply(pywt.cwt, args=(scales, wavelet), axis=1).to_frame()
@@ -146,19 +146,6 @@ def create_continuous_wavelet_dataset(dataset):
     wavelet_data = pd.DataFrame(data=wavelet_array)
     wavelet_data["Malicious"] = dataset["Malicious"]
     return wavelet_data
-
-
-def create_discrete_wavelet_dataset(dataset):
-    columns = dataset.columns.tolist()
-    columns.remove("Malicious")
-
-    discrete_wavelet_data = pywt.dwt(dataset[columns], "haar")
-    wavelet_array = []
-    for i in range(discrete_wavelet_data.shape[0]):
-        wavelet_array.append(discrete_wavelet_data.loc[i][0][0][0])
-    discrete_wavelet_data = pd.DataFrame(data=wavelet_array)
-    discrete_wavelet_data["Malicious"] = dataset["Malicious"]
-    return discrete_wavelet_data
 
 
 request_reply_df = pd.read_csv(REQUEST_REPLY_CSV_LOCATION, header=None)
@@ -175,15 +162,13 @@ reply_reply_df.replace({"Malicious": {'legit': 0, 'malware': 1}}, inplace=True)
 
 request_reply_fourier = create_fourier_dataset(request_reply_df)
 reply_reply_fourier = create_fourier_dataset(reply_reply_df)
-request_reply_cwavelet = create_continuous_wavelet_dataset(request_reply_df)
-reply_reply_cwavelet = create_continuous_wavelet_dataset(reply_reply_df)
-request_reply_dwavelet = create_discrete_wavelet_dataset(request_reply_df)
-reply_reply_dwavelet = create_discrete_wavelet_dataset(reply_reply_df)
+request_reply_wavelet = create_continuous_wavelet_dataset(request_reply_df)
+reply_reply_wavelet = create_continuous_wavelet_dataset(reply_reply_df)
 
 
 if __name__ == "__main__":
     print("Training model on wavelet request reply data")
-    features = generate_features(request_reply_dwavelet)
+    features = generate_features(request_reply_wavelet)
     model = build_conv_model(features)
-    fourier_qr_history, fourier_qr_results = train_model(model, request_reply_df)
+    qr_history, qr_results = train_model(model, request_reply_wavelet, train_epoch=25)
 

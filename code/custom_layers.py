@@ -42,8 +42,8 @@ class WaveletConvLayer(Layer):
         super(WaveletConvLayer, self).__init__()
 
         self.output_dim = output_dim
-        self.dwt = pywt.dwtn
-        self.idwt = pywt.idwtn
+        self.dwt = pywt.cwt
+        self.idwt = inverse_wavelet
         self.kernel = None  # We initialize the kernel below - there is no way to initialize without an input shape.
 
         self.conv1d = tf.nn.conv1d
@@ -64,15 +64,19 @@ class WaveletConvLayer(Layer):
         a = np.ones(x.shape[1])
         b = a * x[0]
         y = tf.cast(self.kernel, dtype=tf.dtypes.complex64)
-        wavelet_x = self.dwt(b, 'haar', axes=0)
+        wavelet_x = self.cwt(b, 'morl', axes=0)
         wavelet_x = tf.matmul(wavelet_x, y)
-        x = self.idwt(wavelet_x)
+        x = self.icwt(wavelet_x)
         x = tf.convert_to_tensor(x)
         x = tf.cast(x, dtype=tf.float32)
         return x
 
     def compute_output_shape(self, input_shape):
         return (input_shape[0], self.output_dim)
+
+
+def inverse_wavelet():
+    pass
 
 
 if __name__ == "__main__":
