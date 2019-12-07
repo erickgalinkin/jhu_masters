@@ -6,6 +6,7 @@
 \usepackage{url}
 \usepackage{cite}
 \usepackage{amsfonts}
+\usepackage{mathtools}
 \usepackage{footnote}
 \usepackage{footmisc}
 \usepackage{enumitem}
@@ -72,7 +73,7 @@ The reply-reply data is quite similar except that the data measured the latency 
 
 In addition to these two raw datasets, we also examined the Fourier transform of the datasets and a wavelet transform of the datasets. 
 Given the large number of wavelets that exist, we chose the Morlet wavelet as the mother wavelet for the data transform due to how friendly it was with the data and the fact that it is uniquely invertible.
-It is also noteworthy that due to the difficulty in inverting a continuous wavelet transform (See Appendix~\ref{inverse cwt}), a different wavelet - namely, the Haar Wavelet - was chosen for the wavelet neural network described in section \ref{wavelet cnn}.
+% This is not true for all wavelets, and a proof of its invertibility is given in Appendix~\ref{inverse cwt}.
 
 Summary statistics for the aforementioned 6 datasets are in Table~\ref{Tab:summary}. 
 For the non-raw datasets, only the first word of the transformed dataset is included (\textit{e.g.}, Fourier Transformed Request-Reply becomes ``Fourier Request'')
@@ -107,7 +108,8 @@ The remaining models all used the Tensorflow framework.
 All models were trained and tested on a 2018 MacBook Pro with 32GB of RAM and a 2.9GHz Intel Core i9 processor.
 Given the small size of the data and relative simplicity of the models, GPU acceleration was not needed.
 The sections here describe only the details of the architecture.
-An overview of the machine learning algorithms is provided in appendix~\ref{ml algo}, and a more thorough treatment is available in Hastie~\cite{hastie01statisticallearning} or James~\cite{james14introduction}
+Mathematical details of the machine learning algorithms can be found in Hastie~\cite{hastie01statisticallearning} or James~\cite{james14introduction}
+% An overview of the machine learning algorithms is provided in appendix~\ref{ml algo}, and a more thorough treatment is available in Hastie~\cite{hastie01statisticallearning} or James~\cite{james14introduction}
 
 \subsection{Standard Fully-Connected Neural Network}
 The fully-connected neural network architecture accepts, as input, a 1x100 row-vector. 
@@ -135,20 +137,6 @@ X^{(n+1)} & = a \\
 
 Where $\mathcal{F}$ is the Fast Fourier Transform, $\sigma$ is the activation function - ReLU in this case - and $\mathbf{W}$ is the weight matrix for layer n.
 
-\begin{algorithm}
-\caption{Fourier Layer}
-\label{Fourier layer}
-\begin{algorithmic}[1]
-\REQUIRE $X, W \in \mathbb{C}^{mxn}, \beta \in \mathbb{C}^m$
-\ENSURE $X \neq 0$
-\STATE Perform Fourier transform on input data: $\mathcal{F}(X^{(n)})$
-\STATE Take dot product of input data and weight matrix: $\mathcal{F}(X^{(n)})\cdot \mathbf{W}^{(n)\top}$
-\STATE Perform Inverse Fourier transform on the dot product: $\mathcal{F}(\mathcal{F}(X^{(n)})\cdot \mathbf{W}^{(n)\top})$
-\STATE Apply ReLU activation: $a = \sigma(\mathcal{F}^{-1}(\mathcal{F}(X^{(n)})\cdot \mathbf{W}^{(n)\top}))$
-\STATE Return $a$
-\end{algorithmic}
-\end{algorithm}
-
 Our Fourier ``Convolutional'' neural network is a mirror image of our standard convolutional neural network, only with the convolutional layers replaced by Fourier layers.
 Here, we put the word convolutional in scare quotes due to the fact that no actual convolution is performed and thus it is a misnomer.
 To be more intellectually honest, we should refer to this network instead as a ``Fourier Transform Inner Product Network'', though this may confuse readers unfamiliar with the relationship.
@@ -158,7 +146,8 @@ In the interest of broad understanding, the term convolutional neural network is
 The Wavelet Convolutional Neural Network implements similar functionality to our Fourier Neural Network, using the Continuous Wavelet Transform in lieu of the Fourier transform.
 Due to the fact that there is a time component and a frequency component, the wavelet neural network has a higher dimensionality than our other models. 
 
-
+Details of the Wavelet Neural Network are pending a significant code revision.
+This revision is due to some late work associated with the inversion of the continuous wavelet transform.
 
 \subsection{Other Models} \label{other models}
 Two baseline models were considered.
@@ -180,7 +169,7 @@ As shown in Table~\ref{Tab:test}, the Random forest classifier outperforms all o
 It is also noteworthy that the Fourier-transformed data fed to the convolutional Neural Network appears to misclassify an extremely high percentage of samples, and by flipping the labels on the test samples, we actually achieve 72.6\% accuracy, making it our second most accurate neural network classifier.
 
  
-\begin{table}[h]
+\begin{table}[ht]
 \caption{Android App Data Test Results}
 \centering
 \label{Tab:test}	
@@ -188,19 +177,28 @@ It is also noteworthy that the Fourier-transformed data fed to the convolutional
 Data and Architecture Combination & Test Accuracy & mean step time (ms) \\
 Raw, Fully-Connected NN           & 62.60\%         & 13                  \\
 Raw, Convolutional NN             & 72.89\%         & 54                  \\
-Fourier, Fully-Connected NN       & 55.28\%       & 12                  \\
+Fourier, Fully-Connected NN       & 55.28\%         & 12                  \\
 Fourier, Convolutional NN         & 27.40\%         & 56                  \\
 Wavelet, Fully-Connected NN       & 61.95\%         & 12                  \\
 Wavelet, Convolutional NN         & 70.77\%         & 52                  \\
 Raw, Fourier NN                   & 66.59\%         & 553                 \\
-Raw, Wavelet NN                   & 00.00\%*        & 000*                \\
+% Raw, Wavelet NN                   & 00.00\%        & 000                \\
 Raw, Random Forest                & 79.80\%         & N/A                 \\
 Raw, Support Vector Classifier    & 55.28\%         & N/A                
 \end{tabular}
 \end{table}
  
 \subsection{Data Representation and Neural Networks} \label{data representation}
-aaaa
+We explored 3 different data representations: Raw, Fourier-transformed, and Wavelet-transformed.
+The summary statistics of this data are displayed in Table~\ref{Tab:summary}.
+The results achieved by the classifiers as displayed in Table~\ref{Tab:test} suggest the following:
+\begin{enumerate}
+\item Both the Fully-Connected and Convolutional neural networks have difficulty learning from the Fourier transformed data
+\item The wavelet data and the raw data result in comparable performance across both fully-connected and convolutional neural networks.
+\end{enumerate}
+
+The inability to learn from the Fourier-transformed data may be due to the variance of that dataset being four orders of magnitude larger than the raw data.
+Given the tremendous variance even within a single sample type, the error which gets backpropogated through the networks is almost certainly going to be far too noisy to train the weights such that they can appropriately predict future samples. 
 
 \section{Conclusions and Ongoing Work}
 Overall, the results are interesting, even if they do not immediately improve on the state-of-the-art. 
@@ -222,14 +220,27 @@ In order to remedy some of the hurdles of this dataset, we also plan to try thes
 By using more traditional benchmarks, we can also better contextualize our results here, and how the Fourier and Wavelet networks perform on these tasks.
 This work will likely be time consuming, but is still feasible within our time constraints.
 
-Although there is significant ongoing work, the bulk of the research allows us to conclude that for this dataset, the best classifier is likely some kind of decision tree.
+Although there is necessary ongoing work, the bulk of the research allows us to conclude that for this dataset, the best classifier is likely some kind of decision tree.
 It may be fruitful to find a well-tuned decision tree classifier, pair it with the script which generated the data, and treat those results separately as a conference or journal paper. 
 That decision remains to be made at the time of this writing.
+
+As for the neural networks, the above approaches seem likely to bear fruit in improving the internal representations for non-standard neural networks.
+This will help us better understand the impact of the initial data on the ability of neural networks to learn appropriate representations of the data.
 
 \bibliography{bibtex}
 \bibliographystyle{siam}
 
-\appendix
-\section{Description of Machine Learning Algorithms}\label{ml algo}
-asdfasdfasdf
+% \appendix
+% \section{Description of Machine Learning Algorithms}\label{ml algo}
+% asdfasdfasdf
+
+% \section{Proof of Invertibility of Morlet CWT}\label{inverse cwt}
+% We define the continuous wavelet transform of some function $x(t)$ as:
+% $$X_w(a, b) = \frac{1}{\abs{a}^{1/2}} \int_{-\infty}^{\infty} x(t) \overline\psi\Big(\frac{t-b}{a}\Big) dt$$
+% Where $\overline\psi$ represents the complex conjugate of a function which is continuous in both the time and frequency domain, $a$ is the scale, and $b$ is the shift.
+% Let $\psi(t) = e^{i \omega_{0} t - \frac{t^2}{2}}$, the Morlet wavelet, which is a product of a complex sine wave and a Gaussian window with central frequency $\omega_{0}$.
+% This yields the continuous wavelet transform with respect to the Morlet wavelet
+% $$X_w(a, b) = \int_{-\infty}^{\infty} x(t) e^{-i \omega_{0} \frac{t-b}{a}} e^{-\frac{(t-b)^2}{2a^2}} \frac{dt}{\sqrt{2 \pi a^2}}$$
+
+
 \end{document}
