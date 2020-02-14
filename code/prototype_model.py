@@ -5,7 +5,9 @@ from sklearn.model_selection import train_test_split
 import pandas as pd
 import numpy as np
 import pywt
-from custom_layers import FourierConvLayer
+from custom_layers import FourierConvLayer, WaveletLayer
+
+tf.keras.backend.set_floatx('float32')
 
 # Configuration options
 BATCH_SIZE = 100
@@ -105,7 +107,28 @@ def fourier_model(features):
 
 
 def wavelet_model(features):
-    pass
+    feature_layer = layers.DenseFeatures(features)
+
+    model = Sequential()
+    model.add(feature_layer)
+    model.add(layers.Reshape((100, 1)))
+    model.add(WaveletLayer(256, autocast=False))
+    model.add(layers.MaxPooling1D(pool_size=2, strides=2, padding='valid'))
+    model.add(WaveletLayer(256, autocast=False))
+    model.add(layers.MaxPooling1D(pool_size=2, strides=None, padding='valid'))
+    model.add(layers.BatchNormalization())
+    model.add(layers.Flatten())
+    model.add(layers.Dense(128, activation='relu'))
+    model.add(layers.Dense(128, activation='relu'))
+    model.add(layers.Dense(1, activation='sigmoid'))
+
+    model.compile(
+        optimizer='SGD',
+        loss='binary_crossentropy',
+        metrics=['accuracy']
+    )
+
+    return model
 
 
 def train_model(model, data, train_epoch=EPOCHS):
@@ -167,8 +190,8 @@ reply_reply_wavelet = create_continuous_wavelet_dataset(reply_reply_df)
 
 
 if __name__ == "__main__":
-    print("Training model on wavelet request reply data")
-    features = generate_features(request_reply_wavelet)
-    model = build_conv_model(features)
-    qr_history, qr_results = train_model(model, request_reply_wavelet, train_epoch=25)
+    print("Training wavelet model on request reply data")
+    features = generate_features(request_reply_df)
+    model = wavelet_model(features)
+    qr_history, qr_results = train_model(model, request_reply_df, train_epoch=25)
 
