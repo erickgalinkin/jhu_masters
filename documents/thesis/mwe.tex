@@ -1,0 +1,376 @@
+% This template was originally by R. Jacob Vogelstein
+% Updated on March 1, 2010 by Noah J. Cowan
+% Updated on May 18, 2014 by Brian Weitzner
+% at https://github.com/weitzner/jhu-thesis-template
+% Updated on January 29, 2016 by John Muschelli
+% at https://github.com/muschellij2/PhD_Thesis
+% Updated on April 13, 2016 by Leonardo Collado Torres and
+% available at https://github.com/lcolladotor/jhu-thesis-template.
+% Forked by John Clayton in December, 2019
+% JHU Formatting requirements of Sheridan Libraries may be found at:
+% https://www.library.jhu.edu/library-services/
+% electronic-theses-dissertations/formatting-requirements/
+
+% The document is based on the standard 12pt LaTeX report class
+%\documentclass[12pt,draft]{report}
+\documentclass[12pt]{report}
+
+% PDF Creation settings
+\pdfcompresslevel=9
+\pdfminorversion=5
+\pdfobjcompresslevel=2
+
+% Needed to create a PDF/A file
+\usepackage[a-1b]{pdfx}
+
+% Incude pdf docs
+\usepackage{pdfpages}
+% For transferring hyperlinks from PDFs added by pdfpages
+\usepackage{pax}
+
+% For dialect-specific hyphenation etc.
+\usepackage[american]{babel}
+
+% T1 font encoding
+\usepackage[T1]{fontenc}
+% Use UTF8 input encoding
+\usepackage[utf8]{inputenc}
+%\DeclareUnicodeCharacter{00A0}{ }
+
+% Load latin modern, a font with all the characters
+\usepackage{lmodern}
+
+% For generating the dummy text in the mwe template
+\usepackage{lipsum}
+
+% Provides various text symbols (such as \textdegree) in TS1 encoding.
+\usepackage{textcomp}
+
+% provides ul for cv
+\usepackage{soul}
+
+% Set the margins according to JHU specifications
+\usepackage{geometry}
+ \geometry{
+   letterpaper,
+   left=1.5in,
+   right=1.0in,
+   top=1.0in,
+   bottom=1.0in}
+
+% Spacing options
+\usepackage{setspace}
+
+% Typography and fonts
+\usepackage[protrusion]{microtype}
+% For multiple columns
+\usepackage{multicol}
+% for proper text wrapping of nucleic acid sequences
+\usepackage{seqsplit}
+
+% Fancy verbatim-like environment for code
+\usepackage{listings}
+\lstset{basicstyle=\footnotesize\ttfamily,
+        columns=flexible,
+        breaklines=true
+}
+
+% Hyperlink handling
+\usepackage[pdfa]{hyperref}
+\hypersetup{
+   linktocpage,
+   unicode,
+   colorlinks=true,
+   citecolor=link,
+   filecolor=link,
+   linkcolor=link,
+   urlcolor=link
+}
+
+% Color handling
+\usepackage{xcolor}
+%\usepackage{color}
+
+% Color for links
+\definecolor{link}{rgb}{0.45,0.51,0.67}
+
+%%% Table of Contents %%%
+\usepackage[titles]{tocloft}
+% Dots for chapters too
+\renewcommand{\cftchapleader}{\cftdotfill{\cftdotsep}}
+
+% To add bibliography to the table of contents
+\usepackage{tocbibind}
+
+% Set depth of TOC items
+\setcounter{tocdepth}{4}
+
+% Set depth of section numbering
+\setcounter{secnumdepth}{4}
+
+\usepackage{calc}
+% Tweak to TOC to add 'chapter' to chapter name instead of a number only
+\renewcommand{\cftchappresnum}{\chaptername\space}
+% Set width of box based on longest label name
+\setlength{\cftchapnumwidth}{\widthof{\textbf{Appendix~II~}}}
+
+% Stylize chapter headings
+%\usepackage{sectsty}
+%\chapterfont{\centering}
+
+% Removes 'Chapter #' title while keeping
+% it listed in the TOC
+\newcommand\chap[1]{%
+  \chapter*{#1}%
+  \addcontentsline{toc}{chapter}{#1}}
+
+% Removes 'Section #' title while keeping
+% it listed in the TOC
+\newcommand\sect[1]{%
+  \section*{#1}%
+  \addcontentsline{toc}{section}{#1}}
+
+% Removes 'Subsection #'title while keeping
+% it listed in the TOC
+\newcommand\subsect[1]{%
+  \subsection*{#1}%
+  \addcontentsline{toc}{subsection}{#1}}
+
+% For oligo table
+% Changes dot to hyphen in figure references and captions
+\renewcommand{\thetable}{\thechapter-\Roman{table}}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{pdflscape}
+
+% Align on numeric decimal in table
+%\usepackage{dcolumn}
+
+% Enhanced control over layout of itemize, enumerate, and description
+\usepackage{enumitem}
+
+% Graphics Packages
+%\usepackage{graphics} 
+\usepackage{graphicx}
+%\usepackage{float}
+
+% Setup style for figure captions
+\usepackage[font=small,
+            labelfont=bf,
+            labelsep=period,
+            font=sf,
+            hypcap=true]{caption}
+
+% For captions on the side of figures
+\usepackage{ifthen}
+\usepackage[rightcaption]{sidecap}
+
+% Individual panel captions
+%\usepackage{subfig}
+
+% Options for hyperlinking to floats
+\usepackage[all]{hypcap}
+
+% Graphics Path
+\graphicspath{{figures/}}
+
+% To change the name of the figures page
+\renewcommand{\listfigurename}{Figures}
+% To change the default beginning to each line
+\renewcommand{\cftfigpresnum}{\bfseries Figure }
+% Changes dot to hyphen in figure references and captions
+\renewcommand{\thefigure}{\thechapter-\arabic{figure}}
+% To change the distance to the start of the figure title
+\setlength{\cftfignumwidth}{\widthof{\textbf{Figure~5-10~}}}
+
+% Tikz, for drawing vector graphics
+%\usepackage{tikz}
+%\usetikzlibrary{positioning}
+%\usetikzlibrary{shapes,arrows}
+
+% Enable the glossary
+%\makeglossary
+
+% Make appendices
+%\usepackage[title,titletoc]{appendix}
+\usepackage{appendix}
+%\renewcommand{\appendixname}{Appendix}
+
+%%%%%%%%%%%%%%%%%%
+% FOR BIBTEX
+%%%%%%%%%%%%%%%%%%
+
+% For use with IEEEtran.bst
+%\usepackage{cite}
+%\usepackage[numbers,square,compress]{natbib}
+%\setlength\bibsep{4pt}
+% Set bibliography name
+%\usepackage{chbibref}
+%\renewcommand\bibname{References}
+
+%%%%%%%%%%%%%%%%%%
+% FOR BIBLATEX
+%%%%%%%%%%%%%%%%%%
+
+\usepackage[
+style = nature, 
+sorting = none, 
+%dashed = false,
+%maxbibnames = 99,
+backend = biber,
+url=false,
+isbn=false,
+natbib = true
+]{biblatex}
+
+% Point to bibfile
+\addbibresource{classics.bib}
+
+% If you want to exclude some portions from the bibliography
+%\AtEveryBibitem{
+%\clearfield{issn}
+%\clearfield{note}
+%\clearfield{month}
+%}
+
+% Change bib font size
+\renewcommand{\bibfont}{\small}
+
+%%%%%%%%%%%%%%%%%%
+% DOI from Segmentation (needs hyperref)
+%%%%%%%%%%%%%%%%%%
+
+%\makeatletter
+%\providecommand{\doi}[1]{%
+%  \begingroup
+%    \let\bibinfo\@secondoftwo
+%    \urlstyle{rm}%
+%    \href{http://dx.doi.org/#1}{%
+%      doi:\discretionary{}{}{}%
+%      \nolinkurl{#1}%
+%    }%
+%  \endgroup
+%}
+%\makeatother
+
+% Math
+%\usepackage{amsmath,amssymb,array}
+
+%\newcommand{\bm}[1]{ \mbox{\boldmath $ #1 $} }
+%\newcommand{\bin}[2]{\left(\begin{array}{@{}c@{}} #1 \\ #2
+%             \end{array}\right) }
+% A math shortcut frequently used by John Muschelli
+%\newcommand{\bbeta}{\mbox{\boldmath $\beta$}}
+
+%%%%%%%%%%%
+% CONTENT %
+%%%%%%%%%%%
+%
+\begin{document}
+% Sets paragraph (and not title) spacing, roughly speaking
+\setlength{\parskip}{3pt}
+\baselineskip=24pt
+%
+% front matter page numbering
+\pagenumbering{roman}
+%
+% Add title page
+\include{text/01-title}
+%
+% Setup and add front matter
+\pagestyle{plain}
+\setcounter{page}{2}
+%
+% Add abstract
+\include{text/02-abstract}
+%
+% Add readers (JHU style is to include readers with in abstract)
+%\include{text/03-committee}
+%
+% Add preface
+%\include{text/04-preface}
+%
+% Add dedication
+\include{text/05-dedication}
+%
+% Add acknowledgements
+\include{text/06-acknowledgements}
+%
+% To change the name of the contents page
+%\renewcommand{\contentsname}{Contents}
+%
+% Create table of contents
+\tableofcontents
+%
+% Create table list
+%\listoftables
+%
+% Create List of figures
+\listoffigures
+\clearpage
+%
+%%% END FRONT MATTER %%%
+%
+%%%%% MAIN MATTER %%%%%
+% Switch page numbering at the end of front matter, before first chapter
+\pagenumbering{arabic}
+%
+%\begin{refsection}[myrefs.bib]
+\include{text/07-chapter-1-introduction}
+%\printbibliography[title=References]}
+%\end{refsection}
+%
+%\begin{refsection}[myrefs.bib]
+\include{text/08-chapter-2}
+%\printbibliography[title={References}]
+%\end{refsection}
+%
+%\begin{refsection}[myrefs.bib]
+\include{text/09-chapter-3}
+%\printbibliography[title={References}]
+%\end{refsection}
+%
+%\begin{refsection}[myrefs.bib]
+\include{text/10-chapter-4}
+%\printbibliography[title={References}]
+%\end{refsection}
+%
+%\begin{refsection}[myrefs.bib]
+\include{text/11-chapter-5-discussion-conclusions}
+%\printbibliography[title={References}]
+%\end{refsection}
+%
+%%%%% BACK MATTER %%%%%
+%
+%%% BIBLATEX BIBLIOGRAPHY %%%
+%\footnotesize
+\printbibliography[title={References},heading=bibintoc]
+%
+%%% BIBTEX BIBLIOGRAPHY %%%
+%
+% Use the IEEEtran.bst style file (bibtex)
+%\bibliographystyle{IEEEtran}
+%
+% Name the bibliography
+%\setbibref{References}
+% Point to bibfile
+%\footnotesize\bibliography{IEEEabrv,classics}
+%\bibliography{IEEEabrv,classics}
+%
+% APPENDICES
+\begin{appendices}
+% Appendix I
+\include{text/12-appendix-i}
+% Appendix II
+\include{text/13-appendix-ii}
+\end{appendices}
+%
+%%% CV %%%
+\include{text/15-my-original-cv}
+%
+%%% Biographical Sketch %%%
+\include{text/16-biographical-sketch}
+%
+\end{document}

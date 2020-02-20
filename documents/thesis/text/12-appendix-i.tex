@@ -1,0 +1,63 @@
+%\thispagestyle{empty}
+\footnotesize
+% Setup and stylize appendices to integrate with TOC
+\addtocontents{toc}{\protect\renewcommand\protect\cftchappresnum{\appendixname~}}
+\renewcommand{\thechapter}{\Roman{chapter}}
+
+% Stylize section header
+\renewcommand{\thesection}{\Alph{section}.}
+
+\begin{landscape}
+% Appendix I: Oligonucleotide and probe sequences
+%\addcontentsline{toc}{chapter}{Oligonucleotide and probe sequences}
+\chapter{Oligonucleotide and probe sequences}
+\label{append:one}
+%
+\begin{longtable}{p{0.15in}p{1.25in}>{\itshape}p{2.25in}>{\ttfamily}p{4.10in}}
+% header ------------------------
+\caption{Oligonucleotide and probe sequences}\\
+\toprule
+\multicolumn{1}{l}{\textnumero}&
+\multicolumn{1}{l}{Name}&
+\multicolumn{1}{l}{Note}&
+\multicolumn{1}{l}{Sequence}\\
+\midrule
+\endfirsthead
+\caption{Oligonucleotide and probe sequences}\\
+\toprule
+\multicolumn{1}{l}{\textnumero}&
+\multicolumn{1}{l}{Name}&
+\multicolumn{1}{l}{Note}&
+\multicolumn{1}{l}{Sequence}\\
+\midrule
+\endhead
+\\
+
+% Inelegant header
+&\multicolumn{3}{c}{\large\textbf{General}}\\[1em]
+%
+1 & SP6-F &
+SP6 Promoter Primer &
+\seqsplit{GATTTAGGTGACACTATAG}\\
+%
+2 & T7-F &
+T7 Promoter Primer &
+\seqsplit{TAATACGACTCACTATAGG}\\[1em]
+%
+% Inelegant header
+&\multicolumn{3}{c}{\large\textbf{qPCR oligos \& probes}}\\[1em]
+%
+3 & EGFP-615F &&
+\seqsplit{GTCCGCCCTGAGCAAAGA}\\
+%
+4 & EGFP-668R &&
+\seqsplit{TCCAGCAGGACCATGTGATC}\\
+%
+5 & EGFP-634T &
+EGFP probe &
+\seqsplit{CCCAACGAGAAGCG}\\
+%
+\bottomrule
+\end{longtable}
+\end{landscape}
+
