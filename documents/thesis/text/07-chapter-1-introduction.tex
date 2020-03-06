@@ -1,103 +1,36 @@
 \chapter{Introduction}
 \label{chap:intro}
 
-\sect{\lipsum*[1][1]}
 
-\subsect{\lipsum*[1][2]}
+\sect{Neural Networks}
+Neural Networks are a type of connectionist machine learning system in which artificial neurons are connected to one another in an attempt to emulate animal - particularly human - brains.
+Deep learning is a particular form of machine learning in which artificial neurons are stacked several layers deep to learn more complex representations. 
+The recent boom in deep learning stems from the truly groundbreaking work advancing the state-of-the-art in natural language processing and computer vision domains.
+This has reasonably led us to ask what the applicability of neural networks and deep learning are to other domains. 
 
-\lipsum[1-3]\parencite{darwin,newton,mendel}
+\sect{Previous Work}
+The core result relies on prior work by Kraskov \textit{et al.}~\cite{kraskov2004estimating}. 
+In this work, Kraskov \textit{et al.} present methods for estimating mutual information, which we use to empirically validate our results about preservation of mutual information.
+A special case of their proof of invariance of mutual information under homeomorphism is proven in \ref{chap:four}, and is used to support our key results.
+Our work differs significantly in that we prove empirical results which support their theory, and we contextualize the results by showing how they relate to neural networks.
 
-% Figure 1-1
-\begin{figure}[t] %  figure placement: here, top, bottom, or page
-   \centering
-%   \includegraphics[width=\textwidth,height=\textheight,keepaspectratio]{fig_1-1}
-   \includegraphics[scale=1]{fig_1-1}
-   \caption[{\lipsum*[1][1]}]{\lipsum*[1][1-2]}
-   \label{fig:fig_1-1}
-\end{figure}
+Our work also leverages an expanded dataset from Watkins \textit{et al.}~\cite{watkins2013using} and one of our objectives, as in Watkins' work, was to build a model for mobile malware detection.
+In the Watkins literature, a decision tree algorithm from the WEKA package was used to classify traffic. 
+In order to compare to Watkins' results to our own neural network results, we leverage a random forest from the Scikit-learn~\cite{scikit-learn} Python package to serve as a baseline.
 
-\subsect{\lipsum*[1][3]}
+Deep neural networks have been applied to related problems in information security, particularly detecting malicious executables on endpoints~\cite{raff2018malware} using techniques from natural language processing and computer vision.
+This research worked well at the endpoint, examining static properties of malicious and benign executables to draw determinations about the software from byte sequences.
 
-\lipsum[4-7]\parencite{malthus,einstein,nash}
+The use of Fourier transforms in neural networks has been of interest for some time and there are several papers on the subject~\cite{osowski2002fourier, pratt2017fcnn, highlander2016very} which consider these applications.
+The choice to explore Fourier transforms in convolutional neural networks is natural, as the dot product is much faster than a convolution operation which relies on a sliding kernel. 
+We lean most heavily on the paper by Pratt \textit{et al.}~\cite{pratt2017fcnn} due to its recency and implementation details. 
+Particularly, Pratt considers the impact of the convolution theorem within neural networks and uses the Fast Fourier Transform to quickly compute $\mathcal{F}(\kappa * u) = \mathcal{F}(\kappa) \odot \mathcal{F}(u)$ where $\mathcal{F}$ is the Fast Fourier Transform, $*$ denotes convolution, and $\odot$ denotes the Hadamard Pointwise Product.
+They also describe a Fourier Pooling Layer to reduce the data size while retaining information by truncating the boundaries of the matrices.
+Ultimately, the paper shows that on the CIFAR-10 and MNIST datasets, the overall accuracy is lower than benchmark results - though the network trains and evaluates images much more quickly.
+Interestingly, we found the opposite results, which we detail in chapter~\ref{chap:three}.
 
-% Figure 1-2
-\begin{figure}[p] %  figure placement: here, top, bottom, or page
-   \centering
-%   \includegraphics[width=0.50\textwidth,height=\textheight,keepaspectratio]{fig_1-2}
-   \includegraphics[scale=1]{fig_1-2}
-   \caption[{\lipsum*[1][2]}]{\lipsum*[1][2-6]}
-   \label{fig:fig_1-2}
-\end{figure}
+Wavelet neural networks pioneered by Fujieda \textit{et al.}~\cite{fujieda2017wavelet} have shown promise for generalized pooling and convolution by abstracting them into downsampling and filtering in the spectral domain.
+The results in the Fujieda paper were significant, as the network achieved better accuracy results than AlexNet on the target dataset while having approximately 1/4 the number of parameters.
+In addition, the memory requirements and speed of the network were a significant improvement on the other architectures considered by Fujieda.
+It is worth noting that implementation details from Fujieda are sparse, and so our implementation may differ from this reference implementation in some way, though the spirit and overall methods are the same.
 
-\subsect{\lipsum*[1][4]}
-
-\lipsum[7-10]\parencite{constable,hardy}
-
-\subsect{\lipsum*[1][5]}
-
-\lipsum[12-13]\parencite{morgan,sturtevant,fisher}
-
-% Figure 1-3
-\begin{figure}[tb] %  figure placement: here, top, bottom, or page
-   \centering
-%   \includegraphics[width=\textwidth,height=\textheight,keepaspectratio]{fig_1-3}
-   \includegraphics[scale=1]{fig_1-3}
-   \caption[{\lipsum*[1][3]}]{\lipsum*[1][3-7]}
-   \label{fig:fig_1-3}
-\end{figure}
-
-\subsect{\lipsum*[1][6]}
-
-\lipsum[16-20]\parencite{dobzhansky,nietzsche}
-
-% New section
-\sect{\lipsum*[2][1]}
-
-\subsect{\lipsum*[2][1]}
-
-\lipsum[23-26]\parencite{weber}
-
-\subsect{\lipsum*[2][2]}
-
-\lipsum[27-30]\parencite{hershey,feynman}
-
-% Figure 1-4
-\begin{figure}[p] %  figure placement: here, top, bottom, or page
-   \centering
-%   \includegraphics[width=\textwidth,height=\textheight,keepaspectratio]{fig_1-4}
-   \includegraphics[scale=1]{fig_1-4}
-   \caption[{\lipsum*[1][4]}]{\lipsum*[2][4-8]}
-   \label{fig:fig_1-4}
-\end{figure}
-
-\lipsum[31-34]\parencite{watson,hawking}
-
-\subsect{\lipsum*[2][3]}
-
-\lipsum[35-42]
-
-\subsect{\lipsum*[2][4]}
-
-\lipsum[43-45]
-
-% New section
-\sect{\lipsum*[3][1]}
-\label{sect:one-three}
-
-\subsect{\lipsum*[3][2]}
-
-\lipsum[47-49]
-
-\subsect{\lipsum*[3][3]}
-\label{subsect:one-three-two}
-
-\lipsum[51-52]
-
-\subsect{\lipsum*[3][4]}
-
-\lipsum[53-55]
-
-% New section
-\sect{\lipsum*[4][1]}
-
-\lipsum[57-58]

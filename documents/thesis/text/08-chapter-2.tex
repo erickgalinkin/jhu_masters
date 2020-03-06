@@ -1,235 +1,98 @@
-\chapter{\lipsum*[9][1]}
+\chapter{Methods}
 \label{chap:two}
 
 % Introduction
-\sect{\lipsum*[10][1]}
+For our purposes, we wanted a high level of heterogeneity in our datasets.
+Since we are working with neural networks, the standard benchmark datasets to consider are of course, the MNIST database of handwritten digits~\cite{lecun1998mnist} and CIFAR-10~\cite{krizhevsky2009learning}.
+These datasets are well-researched and well-understood in the community, and provide context for our results.
 
-\subsect{\lipsum*[10][2]}
+We also considered an expanded version of the dataset used in \cite{watkins2013using}, which is described in detail in appendix \ref{append:one}. 
+Briefly, this dataset consists of interarrival times for packets sent to Android devices, some of which were running malware.
+The interarrival time was collected for each ping packet, and 
 
-\lipsum[1-2]
+\section{Data}
+Summary statistics for the aforementioned malware datasets are in Table~\ref{Tab:summary}. 
+For the non-raw datasets, only the first word of the transformed dataset is included (\textit{e.g.}, Fourier Transformed Request-Reply becomes ``Fourier Request'')'
 
-\subsect{\lipsum*[10][3]}
+In addition, both the CIFAR-10 and MNIST datasets were put through the Fourier transform and the Wavelet transform.
+% Need more here, probably.
 
-\lipsum[3-5]
+One interesting effect of performing the transforms on the dataset is that while the continuous wavelet transform reduces our variance significantly and slightly normalizes the dataset, the Fourier transform has the opposite effect, introducing tremendous amounts of noise into the dataset.
+As we discuss in section~\ref{data representation}, this likely has a meaningful impact on how much the network can learn, and may also explain some of the results found by Pratt \textit{et al.}~\cite{pratt2017fcnn}.
 
-\subsect{\lipsum*[10][4]}
+\renewcommand{\thefootnote}{*} 
+\begin{table}[h]
+\caption{Dataset Summary Statistics}
+\centering
+\label{Tab:summary}	
+\begin{tabular}{l|llll}
+\textbf{Dataset Name} & \textbf{Mean} & \textbf{Median} & \textbf{Mean Var.} & \textbf{Median Var.} \\\cline{1-5}
+Request-Reply         & 27.43    & 10.07    & 8329.96    & 7663.89 \\
+Reply-Reply           & 98.52    & 100.93   & 2688.85    & 2465.29 \\
+Fourier Request       & 58.60\footnotemark    & -1.45    & 12229005.34    & 7418186.12 \\
+Fourier Reply         & 100.19\footnotemark    & -6.82    & 119373138.03    & 122613924.30 \\
+Wavelet Request       & 1.30    & -.072    & 1887.5    & 1507.16 \\
+Wavelet Reply         & 1.03    & 0.12    & 2224.56    & 2135.86                 
+\end{tabular}
+\end{table}
+\footnotetext{There is an extremely small, but non-zero imaginary part, on the order of $10^{-19}i$}
 
-\lipsum[6-7]
+\renewcommand{\thefootnote}{1}
 
-\subsect{\lipsum*[10][5]}
 
-\lipsum[9-10]
+\section{Models}
+All code\footnote{Code is available at the following url: \url{https://github.com/erickgalinkin/jhu_masters}} was written in Python, using the Tensorflow 2.0, PyTorch, and Scikit-learn libraries.
+Only the baseline models described in \ref{other models} used the Scikit-learn library, and only the Wavelet Convolutional network described in \ref{wavelet cnn} used PyTorch.
+The remaining models all used the Tensorflow framework.
+All models were trained and tested on a 2018 MacBook Pro with 32GB of RAM and a 2.9GHz Intel Core i9 processor.
+Given the small size of the data and relative simplicity of the models, GPU acceleration was not needed.
+The sections here describe only the details of the architecture.
+An overview of the machine learning algorithms is provided in appendix~\ref{append:one}, and a more thorough treatment is available in Hastie~\cite{hastie01statisticallearning} or James~\cite{james14introduction}
 
-\subsect{\lipsum*[10][6]}
+\subsection{Standard Fully-Connected Neural Network}
+The fully-connected neural network architecture accepts, as input, a 1x100 row-vector. 
+This vector is then fed to three densely connected layers, each with 256 ReLU-activated neurons.
+The output neuron is a single sigmoid-activated neuron, which provides a probability of traffic being benign.
 
-\lipsum[11-12]
+\subsection{Standard Convolutional Neural Network}
+Our standard convolutional neural network is a sequential model which accepts the same sort of input as our fully-connected neural network, and passes it to an architecture comprised of two convolution and max-pooling blocks, followed by batch normalization, and then passed to two densely connected layers of 128 neurons each. The architecture is visualized below in figure \ref{fig:conv net}.
 
-% Materials and Methods
-\sect{\lipsum*[11][1]}
-
-\subsect{\lipsum*[11][2]}
-
-\lipsum[13]
-
-\subsect{\lipsum*[11][3]}
-
-\lipsum[13-15]
-
-\subsect{\lipsum*[11][4]}
-
-\lipsum[16-18]
-
-\subsect{\lipsum*[11][5]}
-
-\lipsum[19-20]
-
-\subsect{\lipsum*[11][6]}
-
-\lipsum[21]
-
-\subsect{\lipsum*[11][7]}
-
-\lipsum[22]
-
-\subsect{\lipsum*[11][8]}
-
-\lipsum[23]
-
-\subsect{\lipsum*[11][9]}
-
-\lipsum[24]
-
-\subsect{\lipsum*[11][10]}
-
-\lipsum[25-27]
-
-\subsect{\lipsum*[11][11]}
-
-\lipsum[28-30]
-
-% Results
-\sect{\lipsum*[12][1]}
-
-\subsect{\lipsum*[12][2]}
-
-\lipsum[31-37]
-
-% Figure 2-1
-\begin{figure}[p] %  figure placement: here, top, bottom, or page
-   \centering
-%   \includegraphics[width=\textwidth,height=\textheight,keepaspectratio]{fig_2-1}
-   \includegraphics[scale=1]{fig_2-1}
-   \caption[{\lipsum*[21][1]}]{\lipsum*[21][1-5]}
-   \label{fig:fig_2-1}
+\begin{figure}[ht]
+\caption{Standard Convolutional Neural Network Architecture}
+\label{fig:conv net}
+\includegraphics[width=\textwidth]{conv_architecture}
+\centering
 \end{figure}
 
-\subsect{\lipsum*[12][3]}
+\subsection{Fourier Convolutional Neural Network}
+The Fourier Convolutional Neural Network leverages a custom "Fourier Layer", which moves the data into Fourier space via the Fast Fourier Transform before it performs a dot product on the input to the neuron.
+Specifically, given an input $X^{(n)}$ and an output $A$, where the superscript is not an exponent, but instead indicates the layer of the input, the Fourier layer, $\ell$ acts on $X$: 
+\begin{align*}
+X^{(n+1)} & = a \\
+& = \ell^{(n)}(X^{(n)}) \\
+& = \sigma(\mathcal{F}^{-1}(\mathcal{F}(X^{(n)})\cdot \mathbf{W}^{(n)\top}))
+\end{align*}
 
-\lipsum[38-40]
+Where $\mathcal{F}$ is the Fast Fourier Transform, $\sigma$ is the activation function - ReLU in this case - and $\mathbf{W}$ is the weight matrix for layer n.
 
-% Figure 2-2
-\begin{figure}[p]
-   \centering
-%   \includegraphics[width=\textwidth,height=\textheight,keepaspectratio]{fig_2-2}
-   \includegraphics[scale=1]{fig_2-2}
-   \caption[{\lipsum*[22][1]}]{\lipsum*[22][1-5]}
-   \label{fig:fig_2-2}
-\end{figure}
+Our Fourier ``Convolutional'' neural network is a mirror image of our standard convolutional neural network, only with the convolutional layers replaced by Fourier layers.
+Here, we put the word convolutional in scare quotes due to the fact that no actual convolution is performed and thus it is a misnomer.
+To be more intellectually honest, we should refer to this network instead as a ``Fourier Transform Inner Product Network'', though this may confuse readers unfamiliar with the relationship.
+In the interest of broad understanding, the term convolutional neural network is used when it helps elucidate meaning even in spite of being a slight misnomer.
 
-\subsect{\lipsum*[12][4]}
+\subsection{Wavelet Convolutional Neural Network} \label{wavelet cnn}
+The Wavelet Convolutional Neural Network implements similar functionality to our Fourier Neural Network, using the Continuous Wavelet Transform in lieu of the Fourier transform.
+Due to the fact that there is a time component and a frequency component, the wavelet neural network has a higher dimensionality than our other models. 
 
-\lipsum[38-39]
+Details of the Wavelet Neural Network are pending a significant code revision.
+This revision is due to some late work associated with the inversion of the continuous wavelet transform.
 
-\subsect{\lipsum*[12][5]}
+\subsection{Other Models} \label{other models}
+Two baseline models were considered.
+The first is the random forest model provided in the Scikit-learn library with no hyperparameter tuning.
+Decision tree models are generally good at classification tasks~\cite{hastie01statisticallearning} but are weak classifiers which are sensitive to variance.
+Random forests are a the result of averaging a large collection of de-correlated trees and provide a good benchmark as a na\"ive model - in the respect that it is untuned - for classification.
 
-\lipsum[40-42]
-
-% Figure 2-3
-\begin{figure}[p]
-   \centering
-%   \includegraphics[width=\textwidth,height=\textheight,keepaspectratio]{fig_2-3}
-   \includegraphics[scale=1]{fig_2-3}
-   \caption[{\lipsum*[23][1]}]{\lipsum*[23][1-5]}
-   \label{fig:fig_2-3}
-\end{figure}
-
-\lipsum[44-49]
-
-\subsect{\lipsum*[12][6]}
-
-\lipsum[50-53]
-
-% Figure 2-4
-\begin{figure}[p]
-   \centering
-%   \includegraphics[width=\textwidth,height=\textheight,keepaspectratio]{fig_2-4}
-   \includegraphics[scale=1]{fig_2-4}
-   \caption[{\lipsum*[24][1]}]{\lipsum*[24][1-5]}
-   \label{fig:fig_2-4}
-\end{figure}
-
-% Discussion
-\sect{\lipsum*[13][1]}
-
-\lipsum[54-60]
-
-% Figure 2-5
-\begin{figure}[tb]
-   \centering
-%   \includegraphics[width=\textwidth,height=\textheight,keepaspectratio]{fig_2-5}
-   \includegraphics[scale=1]{fig_2-5}
-   \caption[{\lipsum*[25][1]}]{\lipsum*[25][1-5]}
-   \label{fig:fig_2-5}
-\end{figure}
-
-\lipsum[59-61]
-
-% Figure 2-6
-\begin{figure}[p]
-   \centering
-%   \includegraphics[width=\textwidth,height=\textheight,keepaspectratio]{fig_2-6}
-   \includegraphics[scale=1]{fig_2-6}
-   \caption[{\lipsum*[26][1]}]{\lipsum*[26][1-2]}
-   \label{fig:fig_2-6}
-\end{figure}
-
-% Figure 2-7
-\begin{figure}[p]
-   \centering
-%   \includegraphics[width=\textwidth,height=\textheight,keepaspectratio]{fig_2-7}
-   \includegraphics[scale=1]{fig_2-7}
-   \caption[{\lipsum*[27][1]}]{\lipsum*[27][1-2]}
-   \label{fig:fig_2-7}
-\end{figure}
-
-% Figure 2-8
-\begin{figure}[p]
-   \centering
-%   \includegraphics[width=\textwidth,height=\textheight,keepaspectratio]{fig_2-8}
-   \includegraphics[scale=1]{fig_2-8}
-   \caption[{\lipsum*[28][1]}]{\lipsum*[28][1-2]}
-   \label{fig:fig_2-8}
-\end{figure}
-
-% Figure 2-9
-\begin{figure}[p]
-   \centering
-%   \includegraphics[width=\textwidth,height=\textheight,keepaspectratio]{fig_2-9}
-   \includegraphics[scale=1]{fig_2-9}
-   \caption[{\lipsum*[29][1]}]{\lipsum*[29][1-2]}
-   \label{fig:fig_2-9}
-\end{figure}
-
-% Figure 2-10
-\begin{figure}[p]
-   \centering
-%   \includegraphics[width=\textwidth,height=\textheight,keepaspectratio]{fig_2-10}
-   \includegraphics[scale=1]{fig_2-10}
-   \caption[{\lipsum*[30][1]}]{\lipsum*[30][1-2]}
-   \label{fig:fig_2-10}
-\end{figure}
-
-% Figure 2-11
-\begin{figure}[p]
-   \centering
-%   \includegraphics[width=\textwidth,height=\textheight,keepaspectratio]{fig_2-11}
-   \includegraphics[scale=1]{fig_2-11}
-   \caption[{\lipsum*[31][1]}]{\lipsum*[31][1-2]}
-   \label{fig:fig_2-11}
-\end{figure}
-
-% Figure 2-12
-\begin{figure}[p]
-   \centering
-%   \includegraphics[width=\textwidth,height=\textheight,keepaspectratio]{fig_2-12}
-   \includegraphics[scale=1]{fig_2-12}
-   \caption[{\lipsum*[32][1]}]{\lipsum*[32][1-2]}
-   \label{fig:fig_2-12}
-\end{figure}
-
-% Figure 2-13
-\begin{figure}[p]
-   \centering
-%   \includegraphics[width=\textwidth,height=\textheight,keepaspectratio]{fig_2-13}
-   \includegraphics[scale=1]{fig_2-13}
-   \caption[{\lipsum*[33][1]}]{\lipsum*[33][1-2]}
-   \label{fig:fig_2-13}
-\end{figure}
-
-% Figure 2-14
-\begin{figure}[p]
-   \centering
-%   \includegraphics[width=\textwidth,height=\textheight,keepaspectratio]{fig_2-14}
-   \includegraphics[scale=1]{fig_2-14}
-   \caption[{\lipsum*[34][1]}]{\lipsum*[34][1-2]}
-   \label{fig:fig_2-14}
-\end{figure}
-
-% Figure 2-15
-\begin{figure}[p]
-   \centering
-%   \includegraphics[width=\textwidth,height=\textheight,keepaspectratio]{fig_2-15}
-   \includegraphics[scale=1]{fig_2-15}
-   \caption[{\lipsum*[35][1]}]{\lipsum*[35][1-2]}
-   \label{fig:fig_2-15}
-\end{figure}
+The other benchmark model is a Support Vector Classifier, again provided by the Scikit-learn library.
+The rationale for using a Support Vector Machine is that we wanted to see if some hyperplane could be learned which would separate the data.
+This model was again, na\"ive in the respect that it was merely the ``out of the box'' model, and so the classifier was built on top of the radial basis function kernel.

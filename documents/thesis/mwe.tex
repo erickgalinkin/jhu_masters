@@ -45,6 +45,9 @@
 
 % Provides various text symbols (such as \textdegree) in TS1 encoding.
 \usepackage{textcomp}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amsthm}
 
 % provides ul for cv
 \usepackage{soul}
@@ -256,7 +259,11 @@ natbib = true
 %\makeatother
 
 % Math
-%\usepackage{amsmath,amssymb,array}
+\usepackage{amsmath,amssymb,array}
+
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{corollary}{Corollary}[theorem]
+\newtheorem{lemma}[theorem]{lemma}
 
 %\newcommand{\bm}[1]{ \mbox{\boldmath $ #1 $} }
 %\newcommand{\bin}[2]{\left(\begin{array}{@{}c@{}} #1 \\ #2
@@ -366,9 +373,6 @@ natbib = true
 % Appendix II
 \include{text/13-appendix-ii}
 \end{appendices}
-%
-%%% CV %%%
-\include{text/15-my-original-cv}
 %
 %%% Biographical Sketch %%%
 \include{text/16-biographical-sketch}

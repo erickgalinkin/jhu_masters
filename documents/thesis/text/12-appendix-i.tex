@@ -7,57 +7,19 @@
 % Stylize section header
 \renewcommand{\thesection}{\Alph{section}.}
 
-\begin{landscape}
-% Appendix I: Oligonucleotide and probe sequences
 %\addcontentsline{toc}{chapter}{Oligonucleotide and probe sequences}
-\chapter{Oligonucleotide and probe sequences}
+\chapter{Android App Data}
 \label{append:one}
-%
-\begin{longtable}{p{0.15in}p{1.25in}>{\itshape}p{2.25in}>{\ttfamily}p{4.10in}}
-% header ------------------------
-\caption{Oligonucleotide and probe sequences}\\
-\toprule
-\multicolumn{1}{l}{\textnumero}&
-\multicolumn{1}{l}{Name}&
-\multicolumn{1}{l}{Note}&
-\multicolumn{1}{l}{Sequence}\\
-\midrule
-\endfirsthead
-\caption{Oligonucleotide and probe sequences}\\
-\toprule
-\multicolumn{1}{l}{\textnumero}&
-\multicolumn{1}{l}{Name}&
-\multicolumn{1}{l}{Note}&
-\multicolumn{1}{l}{Sequence}\\
-\midrule
-\endhead
-\\
 
-% Inelegant header
-&\multicolumn{3}{c}{\large\textbf{General}}\\[1em]
-%
-1 & SP6-F &
-SP6 Promoter Primer &
-\seqsplit{GATTTAGGTGACACTATAG}\\
-%
-2 & T7-F &
-T7 Promoter Primer &
-\seqsplit{TAATACGACTCACTATAGG}\\[1em]
-%
-% Inelegant header
-&\multicolumn{3}{c}{\large\textbf{qPCR oligos \& probes}}\\[1em]
-%
-3 & EGFP-615F &&
-\seqsplit{GTCCGCCCTGAGCAAAGA}\\
-%
-4 & EGFP-668R &&
-\seqsplit{TCCAGCAGGACCATGTGATC}\\
-%
-5 & EGFP-634T &
-EGFP probe &
-\seqsplit{CCCAACGAGAAGCG}\\
-%
-\bottomrule
-\end{longtable}
-\end{landscape}
+The data were collected from 123 free Android apps downloaded from the Google Play store. 
+Of these apps, 68 were classified benign and 55 were classified malicious.
+The specific methods for collecting the data and classifying the samples is detailed in Watkins \textit{et al.}~\cite{watkins2018network}
+Two datasets were examined for the classifier: these were ``request-reply'' data, and ``reply-reply'' data.
+The request-reply data is the latency between a ping request being sent and a reply being received - 100 of these measurements were collected per sample.
+The reply-reply data is quite similar except that the data measured the latency between a reply and a subsequent reply.
+% In the final report, we likely want to spell out the Fourier Transform and the continuous wavelet transform.
+% That will probably be its own section, maybe an appendix? 
 
+In addition to these two raw datasets, we also examined the Fourier transform of the datasets and a wavelet transform of the datasets. 
+Given the large number of wavelets that exist, we chose the Morlet wavelet as the mother wavelet for the data transform due to how friendly it was with the data and the fact that it is uniquely invertible.
+% This is not true for all wavelets, and a proof of its invertibility is given in Appendix~\ref{inverse cwt}.
