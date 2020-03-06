@@ -11,7 +11,7 @@ tf.keras.backend.set_floatx('float32')
 
 # Configuration options
 BATCH_SIZE = 100
-EPOCHS = 20
+EPOCHS = 25
 
 # Data locations
 REQUEST_REPLY_CSV_LOCATION = "./data/requestreply.csv"
@@ -191,7 +191,9 @@ reply_reply_wavelet = create_continuous_wavelet_dataset(reply_reply_df)
 
 if __name__ == "__main__":
     print("Training wavelet model on request reply data")
-    features = generate_features(request_reply_df)
-    model = wavelet_model(features)
-    qr_history, qr_results = train_model(model, request_reply_df, train_epoch=25)
+    features = generate_features(request_reply_fourier)
+    model = build_fc_model(features)
+    qr_history, qr_results = train_model(model, request_reply_fourier, train_epoch=EPOCHS)
+    # model = build_conv_model(features)
+    # qr_history, qr_results = train_model(model, request_reply_fourier, train_epoch=EPOCHS)
 
