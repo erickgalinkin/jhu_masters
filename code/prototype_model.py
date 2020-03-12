@@ -5,7 +5,7 @@ from sklearn.model_selection import train_test_split
 import pandas as pd
 import numpy as np
 import pywt
-from custom_layers import FourierConvLayer, WaveletLayer
+from custom_layers import FourierConvLayer
 
 tf.keras.backend.set_floatx('float32')
 
@@ -146,29 +146,22 @@ def create_continuous_wavelet_dataset(dataset):
     return wavelet_data
 
 
-request_reply_df = pd.read_csv(REQUEST_REPLY_CSV_LOCATION, header=None)
-request_reply_df.columns = [str(col) for col in request_reply_df.columns]
-request_reply_df.drop("1", axis=1, inplace=True)
-request_reply_df.rename(columns={"0": "Malicious"}, inplace=True)
-request_reply_df.replace({"Malicious": {'legit': 0, 'malware': 1}}, inplace=True)
-
-reply_reply_df = pd.read_csv(REPLY_REPLY_CSV_LOCATION, header=None)
-reply_reply_df.columns = [str(col) for col in reply_reply_df.columns]
-reply_reply_df.drop("1", axis=1, inplace=True)
-reply_reply_df.rename(columns={"0": "Malicious"}, inplace=True)
-reply_reply_df.replace({"Malicious": {'legit': 0, 'malware': 1}}, inplace=True)
-
-request_reply_fourier = create_fourier_dataset(request_reply_df)
-reply_reply_fourier = create_fourier_dataset(reply_reply_df)
-request_reply_wavelet = create_continuous_wavelet_dataset(request_reply_df)
-reply_reply_wavelet = create_continuous_wavelet_dataset(reply_reply_df)
-
-
 if __name__ == "__main__":
-    print("Training wavelet model on request reply data")
-    features = generate_features(request_reply_fourier)
-    model = build_fc_model(features)
-    qr_history, qr_results = train_model(model, request_reply_fourier, train_epoch=EPOCHS)
-    # model = build_conv_model(features)
-    # qr_history, qr_results = train_model(model, request_reply_fourier, train_epoch=EPOCHS)
+    request_reply_df = pd.read_csv(REQUEST_REPLY_CSV_LOCATION, header=None)
+    request_reply_df.columns = [str(col) for col in request_reply_df.columns]
+    request_reply_df.drop("1", axis=1, inplace=True)
+    request_reply_df.rename(columns={"0": "Malicious"}, inplace=True)
+    request_reply_df.replace({"Malicious": {'legit': 0, 'malware': 1}}, inplace=True)
+
+    reply_reply_df = pd.read_csv(REPLY_REPLY_CSV_LOCATION, header=None)
+    reply_reply_df.columns = [str(col) for col in reply_reply_df.columns]
+    reply_reply_df.drop("1", axis=1, inplace=True)
+    reply_reply_df.rename(columns={"0": "Malicious"}, inplace=True)
+    reply_reply_df.replace({"Malicious": {'legit': 0, 'malware': 1}}, inplace=True)
+
+    request_reply_fourier = create_fourier_dataset(request_reply_df)
+    reply_reply_fourier = create_fourier_dataset(reply_reply_df)
+    request_reply_wavelet = create_continuous_wavelet_dataset(request_reply_df)
+    reply_reply_wavelet = create_continuous_wavelet_dataset(reply_reply_df)
+
 

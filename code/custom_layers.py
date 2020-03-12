@@ -1,6 +1,5 @@
 from tensorflow.keras.layers import Layer
 import tensorflow as tf
-import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
