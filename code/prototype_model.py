@@ -106,31 +106,6 @@ def fourier_model(features):
     return model
 
 
-def wavelet_model(features):
-    feature_layer = layers.DenseFeatures(features)
-
-    model = Sequential()
-    model.add(feature_layer)
-    model.add(layers.Reshape((100, 1)))
-    model.add(WaveletLayer(256, autocast=False))
-    model.add(layers.MaxPooling1D(pool_size=2, strides=2, padding='valid'))
-    model.add(WaveletLayer(256, autocast=False))
-    model.add(layers.MaxPooling1D(pool_size=2, strides=None, padding='valid'))
-    model.add(layers.BatchNormalization())
-    model.add(layers.Flatten())
-    model.add(layers.Dense(128, activation='relu'))
-    model.add(layers.Dense(128, activation='relu'))
-    model.add(layers.Dense(1, activation='sigmoid'))
-
-    model.compile(
-        optimizer='SGD',
-        loss='binary_crossentropy',
-        metrics=['accuracy']
-    )
-
-    return model
-
-
 def train_model(model, data, train_epoch=EPOCHS):
     train, test = fix_data(data, shuffle=True, batch_size=BATCH_SIZE)
     history = model.fit(train, epochs=train_epoch)

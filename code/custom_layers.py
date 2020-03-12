@@ -1,11 +1,13 @@
 from tensorflow.keras.layers import Layer
 import tensorflow as tf
 import numpy as np
-import pywt
 import torch
-import pytorch_wavelets as ptw
+import torch.nn as nn
+import torch.nn.functional as F
+from pytorch_wavelets import DWTForward, DWTInverse
 
 tf.keras.backend.set_floatx('float32')
+cuda = torch.cuda.is_available()
 
 
 class FourierConvLayer(Layer):
@@ -40,45 +42,56 @@ class FourierConvLayer(Layer):
         return (input_shape[0], self.output_dim)
 
 
-class WaveletLayer(Layer):
-    def __init__(self, output_dim, **kwargs):
+class WaveletLayer(nn.Module):
+    def __init__(self, d_in, bias=True):
         super(WaveletLayer, self).__init__()
+        self.d_in = d_in
+        self.xfm = DWTForward(J=1, mode='symmetric', wave='db2')
+        self.ifm = DWTInverse(mode='symmetric', wave='db2')
+        # if cuda:
+        #     self.xfm.cuda()
+        #     self.ifm.cuda()
+        self.weight = torch.nn.Parameter(torch.randn((2, (int(d_in/2) + 1))))
+        if bias:
+            self.bias = torch.nn.Parameter(torch.randn((int(d_in/2) + 1)))
 
-        self.output_dim = output_dim
-        self.dwt = pywt.dwt
-        self.idwt = pywt.idwt
-        self.kernel = None  # We initialize the kernel below - there is no way to initialize without an input shape.
+    def forward(self, x):
+        dim_1, dim_2, dim_3, y = x.shape
+        if y != self.d_in:
+            sys.exit('Incorrect Input Features. Please use a tensor with {} Input Features'.format(self.d_in))
+        Yl, Yh = self.xfm(x)
+        output = torch.mm(self.weight.T, Yl[0][0]) + self.bias
+        output = output[:2]
+        Yl_o = output.view(1, 1, 2, (1 + int(self.d_in/2)))
+        z = self.ifm((Yl_o, Yh))
+        a = z.view(dim_1, dim_2, 2*dim_3, y)
+        return F.leaky_relu(a)
 
-        self.conv1d = tf.nn.conv1d
-        self.relu = tf.nn.relu
 
-    def build(self, input_shape):
-        self.kernel = self.add_weight(name='kernel',
-                                      shape=(input_shape[1], self.output_dim),
-                                      initializer='uniform',
-                                      trainable=True)
-        super(WaveletLayer, self).build(input_shape)
+class WaveletNN(nn.Module):
+    def __init__(self, d_in):
+        super(WaveletNN, self).__init__()
 
-    def call(self, x):
-        a = np.array(x)
-        cA, cD = self.dwt(a, 'db2')
-        cA = tf.multiply(cA, self.kernel)
-        cD = tf.multiply(cD, self.kernel)
-        x = self.idwt(cA, cD, 'db2')
-        x = tf.convert_to_tensor(x, dtype=tf.float32)
-        return self.relu(x)
+        self.model = nn.Sequential(
+            WaveletLayer(d_in),
+            WaveletLayer(d_in),
+            nn.MaxPool1d(2, 2),
+            nn.BatchNorm1d(1),
+            nn.Flatten(),
+            nn.Linear(400, 256),
+            nn.ReLU(True),
+            nn.Linear(256, 128),
+            nn.ReLU(True),
+            nn.Linear(128, 1)
+        )
 
-    def compute_output_shape(self, input_shape):
-        return (input_shape[0], self.output_dim)
+    def forward(self, x):
+        y = self.model(x)
+        return y
 
 
 if __name__ == "__main__":
-    from tensorflow.keras.models import Model
-    from tensorflow.keras.layers import Input
-
-    print("Running test...")
-    inp = Input(shape=(100))
-    out = WaveletLayer(64)(inp)
-    model = Model(inp, out)
-
-    model.predict(tf.ones((1, 100)))
+    x = torch.Tensor(1, 1, 1, 100)
+    wl = WaveletLayer(100)
+    y = wl(x)
+    print(y.shape)
