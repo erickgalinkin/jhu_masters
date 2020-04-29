@@ -1,11 +1,11 @@
-\chapter{Results}
-\label{chap:three}
+\chapter{Experiment 2 - In-Network Malware Dataset Transformation}
+\label{chap:four}
 
 Here, our results are divided into two sections. 
 The first considers the efficacy of the malware classifier and where certain improvements could be made.
 The second section considers how the internal and external representation of our datasets influenced the ability of the neural network to learn.
 
-\section{Malware Classifier} \label{malware classifier}
+\sect{Malware Classifier} \label{malware classifier}
 As shown in Table~\ref{Tab:test}, the Random forest classifier outperforms all of the neural network and support vector machine architectures.
 It is also noteworthy that the Fourier-transformed data fed to the convolutional Neural Network appears to misclassify an extremely high percentage of samples, and by flipping the labels on the test samples, we actually achieve 72.6\% accuracy, making it our second most accurate neural network classifier.
 
@@ -18,18 +18,18 @@ It is also noteworthy that the Fourier-transformed data fed to the convolutional
 Data and Architecture Combination & Test Accuracy & mean step time (ms) \\
 Raw, Fully-Connected NN           & 62.60\%         & 13                  \\
 Raw, Convolutional NN             & 72.89\%         & 54                  \\
-% Fourier, Fully-Connected NN       & 55.28\%         & 12                  \\
-% Fourier, Convolutional NN         & 27.40\%         & 56                  \\
+Fourier, Fully-Connected NN       & 58.88\%         & 12                  \\
+Fourier, Convolutional NN         & 70.81\%         & 56                  \\
 Wavelet, Fully-Connected NN       & 61.95\%         & 12                  \\
 Wavelet, Convolutional NN         & 70.77\%         & 52                  \\
-% Raw, Fourier NN                   & 66.59\%         & 553                 \\
-% Raw, Wavelet NN                   & 00.00\%        & 000                \\
+Raw, Fourier NN                   & 66.59\%         & 553                 \\
+Raw, Wavelet NN                   & 73.33\%         & 623                \\
 Raw, Random Forest                & 79.80\%         & N/A                 \\
 Raw, Support Vector Classifier    & 55.28\%         & N/A                
 \end{tabular}
 \end{table}
  
-\section{Data Representation and Neural Networks} \label{data representation}
+\sect{Data Representation and Neural Networks} \label{data representation}
 We explored 3 different data representations: Raw, Fourier-transformed, and Wavelet-transformed.
 The summary statistics of this data are displayed in Table~\ref{Tab:summary}.
 The results achieved by the classifiers as displayed in Table~\ref{Tab:test} suggest the following:

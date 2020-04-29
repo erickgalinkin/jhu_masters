@@ -6,9 +6,27 @@
 Neural Networks are a type of connectionist machine learning system in which artificial neurons are connected to one another in an attempt to emulate animal - particularly human - brains.
 Deep learning is a particular form of machine learning in which artificial neurons are stacked several layers deep to learn more complex representations. 
 The recent boom in deep learning stems from the truly groundbreaking work advancing the state-of-the-art in natural language processing and computer vision domains.
-This has reasonably led us to ask what the applicability of neural networks and deep learning are to other domains. 
+This has reasonably led us to ask what the applicability of neural networks and deep learning are to other domains.
 
-\sect{Previous Work}
+Mathematically, 
+
+Despite their phenomenal empirical success, researchers still understand little about how and why neural networks are able to learn.
+Cybenko~\cite{cybenko1989approximation} first proved that 2-layer neural networks using sigmoid activation functions can uniformly approximate any continuous function of n real variables with support in the unit hypercube.
+This result has been extended several times to other activation functions and networks of bounded width and depth. 
+Per Lu \textit{et al.}~\cite{lu2017expressive}, we can state the following:
+
+Let $f: \mathbb{R}^n \to \mathbb{R}$ be a Lebesgue-measurable function satisfying
+$$\int_{\mathbb{R}^n} \abs{f(x)} dx < \infty$$
+
+and define the Rectified Linear Unit (ReLU) by $\sigma: \mathbb{R} \to \mathbb{R}$ 
+
+$$\sigma(x) = max\{0, x\}$$
+
+then for any Lebesgue-integrable function $f$ and $\epsilon \in \mathbb{R}; \epsilon > 0$, there exists a fully-connected ReLU network $\mathcal{A}$ of width $d_m \leq 4 + n$ such that the function $F_{\mathcal{A}}$ represented by the neural network satisfies:
+$$\int_{\mathbb{R}^n} \abs{f(x) - F_{\mathcal{A}}(x)}dx < \epsilon$$
+
+
+\sect{Prior Work}
 The core result relies on prior work by Kraskov \textit{et al.}~\cite{kraskov2004estimating}. 
 In this work, Kraskov \textit{et al.} present methods for estimating mutual information, which we use to empirically validate our results about preservation of mutual information.
 A special case of their proof of invariance of mutual information under homeomorphism is proven in \ref{chap:four}, and is used to support our key results.
@@ -33,4 +51,3 @@ Wavelet neural networks pioneered by Fujieda \textit{et al.}~\cite{fujieda2017wa
 The results in the Fujieda paper were significant, as the network achieved better accuracy results than AlexNet on the target dataset while having approximately 1/4 the number of parameters.
 In addition, the memory requirements and speed of the network were a significant improvement on the other architectures considered by Fujieda.
 It is worth noting that implementation details from Fujieda are sparse, and so our implementation may differ from this reference implementation in some way, though the spirit and overall methods are the same.
-

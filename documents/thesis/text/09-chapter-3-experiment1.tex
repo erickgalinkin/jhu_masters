@@ -1,10 +1,8 @@
-\chapter{Methods}
-\label{chap:two}
+\chapter{Experiment 1 - Malware Dataset Transformation}
+\label{chap:three}
 
 % Introduction
-For our purposes, we wanted a high level of heterogeneity in our datasets.
-Since we are working with neural networks, the standard benchmark datasets to consider are of course, the MNIST database of handwritten digits~\cite{lecun1998mnist} and CIFAR-10~\cite{krizhevsky2009learning}.
-These datasets are well-researched and well-understood in the community, and provide context for our results.
+
 
 We also considered an expanded version of the dataset used in \cite{watkins2013using}, which is described in detail in appendix \ref{append:one}. 
 Briefly, this dataset consists of interarrival times for packets sent to Android devices, some of which were running malware.
@@ -38,6 +36,8 @@ Wavelet Reply         & 1.03    & 0.12    & 2224.56    & 2135.86
 \footnotetext{There is an extremely small, but non-zero imaginary part, on the order of $10^{-19}i$}
 
 \renewcommand{\thefootnote}{1}
+It is worth noting that the small but non-zero imaginary part in the Fourier networks required implementation of methods from Trabelsi \textit{et al.}~\cite{trabelsi2017deep} to achieve acceptable results. 
+
 
 
 \section{Models}
