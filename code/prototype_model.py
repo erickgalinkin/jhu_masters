@@ -5,13 +5,13 @@ from sklearn.model_selection import train_test_split
 import pandas as pd
 import numpy as np
 import pywt
-from custom_layers import FourierConvLayer, WaveletLayer
+from custom_layers import FourierConvLayer
 
 tf.keras.backend.set_floatx('float32')
 
 # Configuration options
 BATCH_SIZE = 100
-EPOCHS = 20
+EPOCHS = 25
 
 # Data locations
 REQUEST_REPLY_CSV_LOCATION = "./data/requestreply.csv"
@@ -106,31 +106,6 @@ def fourier_model(features):
     return model
 
 
-def wavelet_model(features):
-    feature_layer = layers.DenseFeatures(features)
-
-    model = Sequential()
-    model.add(feature_layer)
-    model.add(layers.Reshape((100, 1)))
-    model.add(WaveletLayer(256, autocast=False))
-    model.add(layers.MaxPooling1D(pool_size=2, strides=2, padding='valid'))
-    model.add(WaveletLayer(256, autocast=False))
-    model.add(layers.MaxPooling1D(pool_size=2, strides=None, padding='valid'))
-    model.add(layers.BatchNormalization())
-    model.add(layers.Flatten())
-    model.add(layers.Dense(128, activation='relu'))
-    model.add(layers.Dense(128, activation='relu'))
-    model.add(layers.Dense(1, activation='sigmoid'))
-
-    model.compile(
-        optimizer='SGD',
-        loss='binary_crossentropy',
-        metrics=['accuracy']
-    )
-
-    return model
-
-
 def train_model(model, data, train_epoch=EPOCHS):
     train, test = fix_data(data, shuffle=True, batch_size=BATCH_SIZE)
     history = model.fit(train, epochs=train_epoch)
@@ -171,27 +146,22 @@ def create_continuous_wavelet_dataset(dataset):
     return wavelet_data
 
 
-request_reply_df = pd.read_csv(REQUEST_REPLY_CSV_LOCATION, header=None)
-request_reply_df.columns = [str(col) for col in request_reply_df.columns]
-request_reply_df.drop("1", axis=1, inplace=True)
-request_reply_df.rename(columns={"0": "Malicious"}, inplace=True)
-request_reply_df.replace({"Malicious": {'legit': 0, 'malware': 1}}, inplace=True)
-
-reply_reply_df = pd.read_csv(REPLY_REPLY_CSV_LOCATION, header=None)
-reply_reply_df.columns = [str(col) for col in reply_reply_df.columns]
-reply_reply_df.drop("1", axis=1, inplace=True)
-reply_reply_df.rename(columns={"0": "Malicious"}, inplace=True)
-reply_reply_df.replace({"Malicious": {'legit': 0, 'malware': 1}}, inplace=True)
-
-request_reply_fourier = create_fourier_dataset(request_reply_df)
-reply_reply_fourier = create_fourier_dataset(reply_reply_df)
-request_reply_wavelet = create_continuous_wavelet_dataset(request_reply_df)
-reply_reply_wavelet = create_continuous_wavelet_dataset(reply_reply_df)
-
-
 if __name__ == "__main__":
-    print("Training wavelet model on request reply data")
-    features = generate_features(request_reply_df)
-    model = wavelet_model(features)
-    qr_history, qr_results = train_model(model, request_reply_df, train_epoch=25)
+    request_reply_df = pd.read_csv(REQUEST_REPLY_CSV_LOCATION, header=None)
+    request_reply_df.columns = [str(col) for col in request_reply_df.columns]
+    request_reply_df.drop("1", axis=1, inplace=True)
+    request_reply_df.rename(columns={"0": "Malicious"}, inplace=True)
+    request_reply_df.replace({"Malicious": {'legit': 0, 'malware': 1}}, inplace=True)
+
+    reply_reply_df = pd.read_csv(REPLY_REPLY_CSV_LOCATION, header=None)
+    reply_reply_df.columns = [str(col) for col in reply_reply_df.columns]
+    reply_reply_df.drop("1", axis=1, inplace=True)
+    reply_reply_df.rename(columns={"0": "Malicious"}, inplace=True)
+    reply_reply_df.replace({"Malicious": {'legit': 0, 'malware': 1}}, inplace=True)
+
+    request_reply_fourier = create_fourier_dataset(request_reply_df)
+    reply_reply_fourier = create_fourier_dataset(reply_reply_df)
+    request_reply_wavelet = create_continuous_wavelet_dataset(request_reply_df)
+    reply_reply_wavelet = create_continuous_wavelet_dataset(reply_reply_df)
+
 
