@@ -2,18 +2,13 @@
 \label{chap:three}
 
 % Introduction
-
-
-We also considered an expanded version of the dataset used in \cite{watkins2013using}, which is described in detail in appendix \ref{append:one}. 
+Since the applications of neural networks are so varied, and have had success in the security domain~\cite{raff2018malware}, we have attempted to apply neural networks to the Watkins~\cite{watkins2013using} dataset.
 Briefly, this dataset consists of interarrival times for packets sent to Android devices, some of which were running malware.
-The interarrival time was collected for each ping packet, and 
+The interarrival time was collected for each ping packet, and the 
 
 \section{Data}
 Summary statistics for the aforementioned malware datasets are in Table~\ref{Tab:summary}. 
 For the non-raw datasets, only the first word of the transformed dataset is included (\textit{e.g.}, Fourier Transformed Request-Reply becomes ``Fourier Request'')'
-
-In addition, both the CIFAR-10 and MNIST datasets were put through the Fourier transform and the Wavelet transform.
-% Need more here, probably.
 
 One interesting effect of performing the transforms on the dataset is that while the continuous wavelet transform reduces our variance significantly and slightly normalizes the dataset, the Fourier transform has the opposite effect, introducing tremendous amounts of noise into the dataset.
 As we discuss in section~\ref{data representation}, this likely has a meaningful impact on how much the network can learn, and may also explain some of the results found by Pratt \textit{et al.}~\cite{pratt2017fcnn}.
@@ -36,63 +31,31 @@ Wavelet Reply         & 1.03    & 0.12    & 2224.56    & 2135.86
 \footnotetext{There is an extremely small, but non-zero imaginary part, on the order of $10^{-19}i$}
 
 \renewcommand{\thefootnote}{1}
-It is worth noting that the small but non-zero imaginary part in the Fourier networks required implementation of methods from Trabelsi \textit{et al.}~\cite{trabelsi2017deep} to achieve acceptable results. 
+It is worth noting that the small but non-zero imaginary part in the Fourier data required implementation of methods from Trabelsi \textit{et al.}~\cite{trabelsi2017deep} to achieve acceptable results.
 
-
-
-\section{Models}
-All code\footnote{Code is available at the following url: \url{https://github.com/erickgalinkin/jhu_masters}} was written in Python, using the Tensorflow 2.0, PyTorch, and Scikit-learn libraries.
-Only the baseline models described in \ref{other models} used the Scikit-learn library, and only the Wavelet Convolutional network described in \ref{wavelet cnn} used PyTorch.
-The remaining models all used the Tensorflow framework.
-All models were trained and tested on a 2018 MacBook Pro with 32GB of RAM and a 2.9GHz Intel Core i9 processor.
-Given the small size of the data and relative simplicity of the models, GPU acceleration was not needed.
-The sections here describe only the details of the architecture.
-An overview of the machine learning algorithms is provided in appendix~\ref{append:one}, and a more thorough treatment is available in Hastie~\cite{hastie01statisticallearning} or James~\cite{james14introduction}
-
-\subsection{Standard Fully-Connected Neural Network}
-The fully-connected neural network architecture accepts, as input, a 1x100 row-vector. 
-This vector is then fed to three densely connected layers, each with 256 ReLU-activated neurons.
-The output neuron is a single sigmoid-activated neuron, which provides a probability of traffic being benign.
-
-\subsection{Standard Convolutional Neural Network}
-Our standard convolutional neural network is a sequential model which accepts the same sort of input as our fully-connected neural network, and passes it to an architecture comprised of two convolution and max-pooling blocks, followed by batch normalization, and then passed to two densely connected layers of 128 neurons each. The architecture is visualized below in figure \ref{fig:conv net}.
-
-\begin{figure}[ht]
-\caption{Standard Convolutional Neural Network Architecture}
-\label{fig:conv net}
-\includegraphics[width=\textwidth]{conv_architecture}
+\begin{table}[ht]
+\caption{Android App Data Test Results}
 \centering
-\end{figure}
+\label{Tab:test}	
+\begin{tabular}{lll}
+Data and Architecture Combination & Test Accuracy & mean step time (ms) \\
+Raw, Fully-Connected NN            & 62.60\%         & 13\\
+Raw, Convolutional NN              & 72.89\%         & 54\\
+Raw, Random Forest                 & 79.80\%         & N/A\\ 
+Raw, Support Vector Classifier     & 55.28\%         & N/A\\    
+Summary, Fully-Connected NN        & 62.60\%         & 13\\
+Summary, Convolutional NN          & 72.89\%         & 54\\
+Summary, Random Forest             & 79.80\%         & N/A\\
+Summary, Support Vector Classifier & 55.28\%         & N/A\\  
+Fourier, Fully-Connected NN        & 58.88\%         & 12\\
+Fourier, Convolutional NN          & 70.81\%         & 56\\
+Fourier, Random Forest             & 79.80\%         & N/A\\
+Fourier, Support Vector Classifier & 55.28\%         & N/A\\  
+Wavelet, Fully-Connected NN        & 61.95\%         & 12\\
+Wavelet, Convolutional NN          & 70.77\%         & 52\\
+Wavelet, Random Forest             & 79.80\%         & N/A\\
+Wavelet, Support Vector Classifier & 55.28\%         & N/A           
+\end{tabular}
+\end{table}
 
-\subsection{Fourier Convolutional Neural Network}
-The Fourier Convolutional Neural Network leverages a custom "Fourier Layer", which moves the data into Fourier space via the Fast Fourier Transform before it performs a dot product on the input to the neuron.
-Specifically, given an input $X^{(n)}$ and an output $A$, where the superscript is not an exponent, but instead indicates the layer of the input, the Fourier layer, $\ell$ acts on $X$: 
-\begin{align*}
-X^{(n+1)} & = a \\
-& = \ell^{(n)}(X^{(n)}) \\
-& = \sigma(\mathcal{F}^{-1}(\mathcal{F}(X^{(n)})\cdot \mathbf{W}^{(n)\top}))
-\end{align*}
 
-Where $\mathcal{F}$ is the Fast Fourier Transform, $\sigma$ is the activation function - ReLU in this case - and $\mathbf{W}$ is the weight matrix for layer n.
-
-Our Fourier ``Convolutional'' neural network is a mirror image of our standard convolutional neural network, only with the convolutional layers replaced by Fourier layers.
-Here, we put the word convolutional in scare quotes due to the fact that no actual convolution is performed and thus it is a misnomer.
-To be more intellectually honest, we should refer to this network instead as a ``Fourier Transform Inner Product Network'', though this may confuse readers unfamiliar with the relationship.
-In the interest of broad understanding, the term convolutional neural network is used when it helps elucidate meaning even in spite of being a slight misnomer.
-
-\subsection{Wavelet Convolutional Neural Network} \label{wavelet cnn}
-The Wavelet Convolutional Neural Network implements similar functionality to our Fourier Neural Network, using the Continuous Wavelet Transform in lieu of the Fourier transform.
-Due to the fact that there is a time component and a frequency component, the wavelet neural network has a higher dimensionality than our other models. 
-
-Details of the Wavelet Neural Network are pending a significant code revision.
-This revision is due to some late work associated with the inversion of the continuous wavelet transform.
-
-\subsection{Other Models} \label{other models}
-Two baseline models were considered.
-The first is the random forest model provided in the Scikit-learn library with no hyperparameter tuning.
-Decision tree models are generally good at classification tasks~\cite{hastie01statisticallearning} but are weak classifiers which are sensitive to variance.
-Random forests are a the result of averaging a large collection of de-correlated trees and provide a good benchmark as a na\"ive model - in the respect that it is untuned - for classification.
-
-The other benchmark model is a Support Vector Classifier, again provided by the Scikit-learn library.
-The rationale for using a Support Vector Machine is that we wanted to see if some hyperplane could be learned which would separate the data.
-This model was again, na\"ive in the respect that it was merely the ``out of the box'' model, and so the classifier was built on top of the radial basis function kernel.

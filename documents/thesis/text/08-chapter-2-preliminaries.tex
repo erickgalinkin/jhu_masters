@@ -6,13 +6,15 @@
 Information theory is a woefully underused tool in the study of neural networks. 
 Since is is useful to apply information theory to the results of our experiments, the terminology and theory necessary for this explanation is contained below.
 For the following proofs, all random variables are assumed to be discrete. 
-This is both because binary computers have only finite precision, and are thus not truly continuous but also because discrete information theory is a far more mature science in that many foundational results are proven only in the discrete case.
+This is both because binary computers have only finite precision, and are thus not "truly" continuous but also because discrete information theory is a far more mature science in that many foundational results are proven only in the discrete case.
+Additionally, in the continuous case, we must take care to avoid divergence to infinity, which is not a problem in the discrete case.
 
 First, we define entropy as the measure of uncertainty of a random variable.
 Let $X$ be a random variable with alphabet $\mathcal{X}$ and probability mass function $p(x) = \\Pr\{X = x\}, x \in \mathcal{X}$.
 Then the entropy of $X$, represented $H(X)$ is defined as
 $$H(X) = -\sum_{x \in \mathcal{X}} p(x) \log{p(x)}$$
-Here our logarithm is to the base 2, as information is most commonly represented as bits. 
+Here our logarithm is to the base 2, as information is most commonly represented as bits.
+We maintain this definition of the logarithm throughout. 
 
 In the case where we are examining two random variables, for example, a dataset and its labels, we may want to consider the joint and conditional entropy of those random variables.
 The joint density of a pair or discrete random variables $(X, Y)$ with joint distribution $p(X, Y)$ is:
@@ -56,3 +58,7 @@ Naftali Tishby and Noga Zaslavsky introduced the information bottleneck theory o
 In particular, Tishby and Zaslavsky show that any deep neural network can be quantified by the mutual information between the input, hidden layers, and the output variable by way of information per the data processing inequality.
 Neural networks satisfy the information bottleneck optimality equation
 $$\min_{p(\hat{x}|x):Y \to X \to \hat{X}} I(\hat{X};X) - \beta I(\hat{X}; Y) , \beta > 0$$
+The information bottleneck learns the representation $\hat{X}$ subject to the above constraint, where $\beta$ controls the strength of the constraint.
+The standard cross-entropy loss is recovered as $\beta \to \infty$. 
+Further work by Alemi \textit{et al.}~\cite{alemi2016deep} suggests further refinements on the information bottleneck theory which we do not discuss in detail here. 
+

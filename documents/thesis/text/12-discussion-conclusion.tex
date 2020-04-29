@@ -1,4 +1,8 @@
 \chap{Conclusions and general discussion}
 \label{chap:conclusion}
 
-asdfasdf
+\section{What a Neural Network Learns}
+The preceding sections suggest that the representation learned by the neural network, $\hat{X}$ constitutes a minimum sufficient statistic of $X$. 
+Moreover, that the mutual information satisfied the data processing inequality with respect to the Markov chain $Y \to X \to \hat{X}$: $I(Y; X) \geq I(Y; \hat{X})$.
+Additionally, the invariance of mutual information under homeomorphism suggests that any smooth, uniquely invertible map on $X$ does not impact the learned representation and that instead only methods of feature extraction~\cite{goodfellow2016deep} which change the data in ways that meaningfully change the entropy of $X$ are useful.
+This reinforces the idea~\cite{goodfellow2014explaining} that probability mass is concentrated in locally-connected regions approximated by small manifolds with significantly lower dimensionality than $X$ itself.

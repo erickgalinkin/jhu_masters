@@ -1,40 +1,40 @@
 \chapter{Introduction}
 \label{chap:intro}
 
-
 \sect{Neural Networks}
 Neural Networks are a type of connectionist machine learning system in which artificial neurons are connected to one another in an attempt to emulate animal - particularly human - brains.
 Deep learning is a particular form of machine learning in which artificial neurons are stacked several layers deep to learn more complex representations. 
 The recent boom in deep learning stems from the truly groundbreaking work advancing the state-of-the-art in natural language processing and computer vision domains.
+Despite their phenomenal empirical success and known ability to generalize, little is understood about the exact mechanism by which neural networks are able to learn, and what the meaning of the learned representation is.
 This has reasonably led us to ask what the applicability of neural networks and deep learning are to other domains.
 
-Mathematically, 
-
-Despite their phenomenal empirical success, researchers still understand little about how and why neural networks are able to learn.
+Much of the power of neural networks stems from their incredible ability to generalize.
 Cybenko~\cite{cybenko1989approximation} first proved that 2-layer neural networks using sigmoid activation functions can uniformly approximate any continuous function of n real variables with support in the unit hypercube.
 This result has been extended several times to other activation functions and networks of bounded width and depth. 
-Per Lu \textit{et al.}~\cite{lu2017expressive}, we can state the following:
+Due to Lu \textit{et al.}~\cite{lu2017expressive}, we can state the following:
 
+\begin{theorem}
 Let $f: \mathbb{R}^n \to \mathbb{R}$ be a Lebesgue-measurable function satisfying
 $$\int_{\mathbb{R}^n} \abs{f(x)} dx < \infty$$
-
 and define the Rectified Linear Unit (ReLU) by $\sigma: \mathbb{R} \to \mathbb{R}$ 
-
 $$\sigma(x) = max\{0, x\}$$
-
 then for any Lebesgue-integrable function $f$ and $\epsilon \in \mathbb{R}; \epsilon > 0$, there exists a fully-connected ReLU network $\mathcal{A}$ of width $d_m \leq 4 + n$ such that the function $F_{\mathcal{A}}$ represented by the neural network satisfies:
 $$\int_{\mathbb{R}^n} \abs{f(x) - F_{\mathcal{A}}(x)}dx < \epsilon$$
+\end{theorem}
+
+Despite the strength of these results, representation learning and neural network interpretability are open questions.
 
 
 \sect{Prior Work}
-The core result relies on prior work by Kraskov \textit{et al.}~\cite{kraskov2004estimating}. 
+One part of our core result relies on prior work by Kraskov \textit{et al.}~\cite{kraskov2004estimating}. 
 In this work, Kraskov \textit{et al.} present methods for estimating mutual information, which we use to empirically validate our results about preservation of mutual information.
-A special case of their proof of invariance of mutual information under homeomorphism is proven in \ref{chap:four}, and is used to support our key results.
-Our work differs significantly in that we prove empirical results which support their theory, and we contextualize the results by showing how they relate to neural networks.
+A special case of their proof of invariance of mutual information under homeomorphism is proven in \ref{chap:two}, and is used to support our key results.
+Our work differs substantially from that of Krasov in our intent and application of results, however.
 
-Our work also leverages an expanded dataset from Watkins \textit{et al.}~\cite{watkins2013using} and one of our objectives, as in Watkins' work, was to build a model for mobile malware detection.
-In the Watkins literature, a decision tree algorithm from the WEKA package was used to classify traffic. 
-In order to compare to Watkins' results to our own neural network results, we leverage a random forest from the Scikit-learn~\cite{scikit-learn} Python package to serve as a baseline.
+Our work also leverages an expanded dataset from Watkins \textit{et al.}~\cite{watkins2013using} and one of our objectives, as in Watkins's work, is to build a model for mobile malware detection.
+In the literature, a decision tree algorithm from the WEKA package was used to classify traffic.
+Other work on the dataset by Watkins's team more closely mirrors our own, and details are elaborated in \ref{chap:three}.
+In order to compare to Watkins's results to our own neural network results, we leverage a random forest from the Scikit-learn~\cite{scikit-learn} Python package to serve as a baseline.
 
 Deep neural networks have been applied to related problems in information security, particularly detecting malicious executables on endpoints~\cite{raff2018malware} using techniques from natural language processing and computer vision.
 This research worked well at the endpoint, examining static properties of malicious and benign executables to draw determinations about the software from byte sequences.
