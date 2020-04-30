@@ -1,0 +1,64 @@
+\chapter{Preliminaries}
+\label{chap:two}
+%\newpage
+
+\section{A Whirlwind Tour of Information Theory}
+Information theory is a woefully underused tool in the study of neural networks. 
+Since is is useful to apply information theory to the results of our experiments, the terminology and theory necessary for this explanation is contained below.
+For the following proofs, all random variables are assumed to be discrete. 
+This is both because binary computers have only finite precision, and are thus not "truly" continuous but also because discrete information theory is a far more mature science in that many foundational results are proven only in the discrete case.
+Additionally, in the continuous case, we must take care to avoid divergence to infinity, which is not a problem in the discrete case.
+
+First, we define entropy as the measure of uncertainty of a random variable.
+Let $X$ be a random variable with alphabet $\mathcal{X}$ and probability mass function $p(x) = \\Pr\{X = x\}, x \in \mathcal{X}$.
+Then the entropy of $X$, represented $H(X)$ is defined as
+$$H(X) = -\sum_{x \in \mathcal{X}} p(x) \log{p(x)}$$
+Here our logarithm is to the base 2, as information is most commonly represented as bits.
+We maintain this definition of the logarithm throughout. 
+
+In the case where we are examining two random variables, for example, a dataset and its labels, we may want to consider the joint and conditional entropy of those random variables.
+The joint density of a pair or discrete random variables $(X, Y)$ with joint distribution $p(X, Y)$ is:
+$$H(X, Y) = - \sum_{x \in \mathcal{X}} \sum_{y \in \mathcal{Y}} p(x, y) \log{p(x, y)}$$
+
+and the differential entropy $H(Y | X)$ as:
+$$ h(Y|X) = -\sum_{x \in \mathcal{X}} \sum_{y \in \mathcal{Y}} p(x, y) \log{p(y|x)}$$
+
+We define the Kullback-Leibler divergence $D(f||g)$ between two probability mass functions $p(x)$ and $q(x)$ to be:
+$$D(f||g) = \sum_{x \in \mathcal{X}} p(x) \log{\frac{p(x)}{q(x)}}$$
+
+Armed with the above knowledge, we define mutual information, $I(X; Y)$ as the relative entropy between the joint distribution and the product distribution.
+$$I(X; Y) = \sum_{x, y} p(x, y) \log{\frac{p(x,y)}{p(x) p(y)}} = H(Y) - H(Y|X)$$
+
+Detailed derivation of the above results are all available in \cite{coverthomas2006}.
+
+\section{Invariance of Mutual Information in Neural Networks}
+
+We begin by proving the invariance of mutual information under homeomorphism.
+
+\begin{theorem}[Invariance of Mutual Information under Homeomorphism]
+Take two random variables $X$ and $Y$ where $Y$ is the set of labels of $X$.
+Let $X' = \psi(X)$, where $\psi$ is a smooth and uniquely invertible map.
+Then $I(X'; Y) = I(X; Y)$.
+\end{theorem}
+
+\begin{proof}
+Given the Jacobi determinant $J_X = ||\partial X/ \partial X'||$, we observe that the joint distribution of $X'$ and $Y$ is given by: $f_{X', Y}(x', y) = J_X(x')f(x, y)$
+
+\begin{align*}
+I(X'; Y) & = \int \int f(x', y) \log_2 \frac{f(x', y)}{f_{X'}(x') f_{Y}(y)} dy dx'\\
+& = \int \int J_X(x')f(x, y) \log_2 \frac{J_X(x')f(x, y)}{J_X(x')f_{X}(x)f_{Y}(y)} dy dx'\\
+& = \int \int f(x, y) \log_2 \frac{f(x, y)}{f_{X}(x) f_{Y}(y)} dy dx \\
+& = I(X; Y)
+\end{align*}
+\end{proof}
+concluding our proof that mutual information is transformation invariant. 
+
+\section{The Information Bottleneck Theory of Neural Networks}
+Naftali Tishby and Noga Zaslavsky introduced the information bottleneck theory of neural networks~\cite{tishby2015deep} as a way of explaining the theoretical generalization bounds of neural nets.
+In particular, Tishby and Zaslavsky show that any deep neural network can be quantified by the mutual information between the input, hidden layers, and the output variable by way of information per the data processing inequality.
+Neural networks satisfy the information bottleneck optimality equation
+$$\min_{p(\hat{x}|x):Y \to X \to \hat{X}} I(\hat{X};X) - \beta I(\hat{X}; Y) , \beta > 0$$
+The information bottleneck learns the representation $\hat{X}$ subject to the above constraint, where $\beta$ controls the strength of the constraint.
+The standard cross-entropy loss is recovered as $\beta \to \infty$. 
+Further work by Alemi \textit{et al.}~\cite{alemi2016deep} suggests further refinements on the information bottleneck theory which we do not discuss in detail here. 
+

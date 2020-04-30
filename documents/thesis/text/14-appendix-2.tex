@@ -1,44 +1,15 @@
-\chapter{Methods}
-\label{chap:two}
+%\thispagestyle{empty}
+\footnotesize
+% Setup and stylize appendices to integrate with TOC
+\addtocontents{toc}{\protect\renewcommand\protect\cftchappresnum{\appendixname~}}
+\renewcommand{\thechapter}{\Roman{chapter}}
 
-% Introduction
-For our purposes, we wanted a high level of heterogeneity in our datasets.
-Since we are working with neural networks, the standard benchmark datasets to consider are of course, the MNIST database of handwritten digits~\cite{lecun1998mnist} and CIFAR-10~\cite{krizhevsky2009learning}.
-These datasets are well-researched and well-understood in the community, and provide context for our results.
+% Stylize section header
+\renewcommand{\thesection}{\Alph{section}.}
 
-We also considered an expanded version of the dataset used in \cite{watkins2013using}, which is described in detail in appendix \ref{append:one}. 
-Briefly, this dataset consists of interarrival times for packets sent to Android devices, some of which were running malware.
-The interarrival time was collected for each ping packet, and 
-
-\section{Data}
-Summary statistics for the aforementioned malware datasets are in Table~\ref{Tab:summary}. 
-For the non-raw datasets, only the first word of the transformed dataset is included (\textit{e.g.}, Fourier Transformed Request-Reply becomes ``Fourier Request'')'
-
-In addition, both the CIFAR-10 and MNIST datasets were put through the Fourier transform and the Wavelet transform.
-% Need more here, probably.
-
-One interesting effect of performing the transforms on the dataset is that while the continuous wavelet transform reduces our variance significantly and slightly normalizes the dataset, the Fourier transform has the opposite effect, introducing tremendous amounts of noise into the dataset.
-As we discuss in section~\ref{data representation}, this likely has a meaningful impact on how much the network can learn, and may also explain some of the results found by Pratt \textit{et al.}~\cite{pratt2017fcnn}.
-
-\renewcommand{\thefootnote}{*} 
-\begin{table}[h]
-\caption{Dataset Summary Statistics}
-\centering
-\label{Tab:summary}	
-\begin{tabular}{l|llll}
-\textbf{Dataset Name} & \textbf{Mean} & \textbf{Median} & \textbf{Mean Var.} & \textbf{Median Var.} \\\cline{1-5}
-Request-Reply         & 27.43    & 10.07    & 8329.96    & 7663.89 \\
-Reply-Reply           & 98.52    & 100.93   & 2688.85    & 2465.29 \\
-Fourier Request       & 58.60\footnotemark    & -1.45    & 12229005.34    & 7418186.12 \\
-Fourier Reply         & 100.19\footnotemark    & -6.82    & 119373138.03    & 122613924.30 \\
-Wavelet Request       & 1.30    & -.072    & 1887.5    & 1507.16 \\
-Wavelet Reply         & 1.03    & 0.12    & 2224.56    & 2135.86                 
-\end{tabular}
-\end{table}
-\footnotetext{There is an extremely small, but non-zero imaginary part, on the order of $10^{-19}i$}
-
-\renewcommand{\thefootnote}{1}
-
+%\addcontentsline{toc}{chapter}{Oligonucleotide and probe sequences}
+\chapter{Neural Network Models}
+\label{append:two}
 
 \section{Models}
 All code\footnote{Code is available at the following url: \url{https://github.com/erickgalinkin/jhu_masters}} was written in Python, using the Tensorflow 2.0, PyTorch, and Scikit-learn libraries.
@@ -50,7 +21,7 @@ The sections here describe only the details of the architecture.
 An overview of the machine learning algorithms is provided in appendix~\ref{append:one}, and a more thorough treatment is available in Hastie~\cite{hastie01statisticallearning} or James~\cite{james14introduction}
 
 \subsection{Standard Fully-Connected Neural Network}
-The fully-connected neural network architecture accepts, as input, a 1x100 row-vector. 
+The fully-connected neural network architecture accepts, as input, a 1x100 row-vector.
 This vector is then fed to three densely connected layers, each with 256 ReLU-activated neurons.
 The output neuron is a single sigmoid-activated neuron, which provides a probability of traffic being benign.
 
@@ -66,7 +37,7 @@ Our standard convolutional neural network is a sequential model which accepts th
 
 \subsection{Fourier Convolutional Neural Network}
 The Fourier Convolutional Neural Network leverages a custom "Fourier Layer", which moves the data into Fourier space via the Fast Fourier Transform before it performs a dot product on the input to the neuron.
-Specifically, given an input $X^{(n)}$ and an output $A$, where the superscript is not an exponent, but instead indicates the layer of the input, the Fourier layer, $\ell$ acts on $X$: 
+Specifically, given an input $X^{(n)}$ and an output $A$, where the superscript is not an exponent, but instead indicates the layer of the input, the Fourier layer, $\ell$ acts on $X$:
 \begin{align*}
 X^{(n+1)} & = a \\
 & = \ell^{(n)}(X^{(n)}) \\
@@ -82,7 +53,7 @@ In the interest of broad understanding, the term convolutional neural network is
 
 \subsection{Wavelet Convolutional Neural Network} \label{wavelet cnn}
 The Wavelet Convolutional Neural Network implements similar functionality to our Fourier Neural Network, using the Continuous Wavelet Transform in lieu of the Fourier transform.
-Due to the fact that there is a time component and a frequency component, the wavelet neural network has a higher dimensionality than our other models. 
+Due to the fact that there is a time component and a frequency component, the wavelet neural network has a higher dimensionality than our other models.
 
 Details of the Wavelet Neural Network are pending a significant code revision.
 This revision is due to some late work associated with the inversion of the continuous wavelet transform.

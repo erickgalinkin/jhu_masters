@@ -1,0 +1,61 @@
+\chapter{Experiment 1 - Malware Dataset Transformation}
+\label{chap:three}
+
+% Introduction
+Since the applications of neural networks are so varied, and have had success in the security domain~\cite{raff2018malware}, we have attempted to apply neural networks to the Watkins~\cite{watkins2013using} dataset.
+Briefly, this dataset consists of interarrival times for packets sent to Android devices, some of which were running malware.
+The interarrival time was collected for each ping packet, and the 
+
+\section{Data}
+Summary statistics for the aforementioned malware datasets are in Table~\ref{Tab:summary}. 
+For the non-raw datasets, only the first word of the transformed dataset is included (\textit{e.g.}, Fourier Transformed Request-Reply becomes ``Fourier Request'')'
+
+One interesting effect of performing the transforms on the dataset is that while the continuous wavelet transform reduces our variance significantly and slightly normalizes the dataset, the Fourier transform has the opposite effect, introducing tremendous amounts of noise into the dataset.
+As we discuss in section~\ref{data representation}, this likely has a meaningful impact on how much the network can learn, and may also explain some of the results found by Pratt \textit{et al.}~\cite{pratt2017fcnn}.
+
+\renewcommand{\thefootnote}{*} 
+\begin{table}[h]
+\caption{Dataset Summary Statistics}
+\centering
+\label{Tab:summary}	
+\begin{tabular}{l|llll}
+\textbf{Dataset Name} & \textbf{Mean} & \textbf{Median} & \textbf{Mean Var.} & \textbf{Median Var.} \\\cline{1-5}
+Request-Reply         & 27.43    & 10.07    & 8329.96    & 7663.89 \\
+Reply-Reply           & 98.52    & 100.93   & 2688.85    & 2465.29 \\
+Fourier Request       & 58.60\footnotemark    & -1.45    & 12229005.34    & 7418186.12 \\
+Fourier Reply         & 100.19\footnotemark    & -6.82    & 119373138.03    & 122613924.30 \\
+Wavelet Request       & 1.30    & -.072    & 1887.5    & 1507.16 \\
+Wavelet Reply         & 1.03    & 0.12    & 2224.56    & 2135.86                 
+\end{tabular}
+\end{table}
+\footnotetext{There is an extremely small, but non-zero imaginary part, on the order of $10^{-19}i$}
+
+\renewcommand{\thefootnote}{1}
+It is worth noting that the small but non-zero imaginary part in the Fourier data required implementation of methods from Trabelsi \textit{et al.}~\cite{trabelsi2017deep} to achieve acceptable results.
+
+\begin{table}[ht]
+\caption{Android App Data Test Results}
+\centering
+\label{Tab:test}	
+\begin{tabular}{lll}
+Data and Architecture Combination & Test Accuracy & mean step time (ms) \\
+Raw, Fully-Connected NN            & 62.60\%         & 13\\
+Raw, Convolutional NN              & 72.89\%         & 54\\
+Raw, Random Forest                 & 79.80\%         & N/A\\ 
+Raw, Support Vector Classifier     & 55.28\%         & N/A\\    
+Summary, Fully-Connected NN        & 62.60\%         & 13\\
+Summary, Convolutional NN          & 72.89\%         & 54\\
+Summary, Random Forest             & 79.80\%         & N/A\\
+Summary, Support Vector Classifier & 55.28\%         & N/A\\  
+Fourier, Fully-Connected NN        & 58.88\%         & 12\\
+Fourier, Convolutional NN          & 70.81\%         & 56\\
+Fourier, Random Forest             & 79.80\%         & N/A\\
+Fourier, Support Vector Classifier & 55.28\%         & N/A\\  
+Wavelet, Fully-Connected NN        & 61.95\%         & 12\\
+Wavelet, Convolutional NN          & 70.77\%         & 52\\
+Wavelet, Random Forest             & 79.80\%         & N/A\\
+Wavelet, Support Vector Classifier & 55.28\%         & N/A           
+\end{tabular}
+\end{table}
+
+
