@@ -8,7 +8,7 @@ The interarrival time was collected for each ping packet, and the
 
 \section{Data}
 Summary statistics for the aforementioned malware datasets are in Table~\ref{Tab:summary}. 
-For the non-raw datasets, only the first word of the transformed dataset is included (\textit{e.g.}, Fourier Transformed Request-Reply becomes ``Fourier Request'')'
+For the non-raw datasets, only the first word of the transformed dataset is included (\textit{e.g.}, Fourier Transformed Request-Reply becomes ``Fourier Request''
 
 One interesting effect of performing the transforms on the dataset is that while the continuous wavelet transform reduces our variance significantly and slightly normalizes the dataset, the Fourier transform has the opposite effect, introducing tremendous amounts of noise into the dataset.
 As we discuss in section~\ref{data representation}, this likely has a meaningful impact on how much the network can learn, and may also explain some of the results found by Pratt \textit{et al.}~\cite{pratt2017fcnn}.
@@ -39,10 +39,10 @@ It is worth noting that the small but non-zero imaginary part in the Fourier dat
 \label{Tab:test}	
 \begin{tabular}{lll}
 Data and Architecture Combination & Test Accuracy & mean step time (ms) \\
-Raw, Fully-Connected NN            & 62.60\%         & 13\\
+Raw, Fully-Connected NN            & 61.87\%         & 13\\
 Raw, Convolutional NN              & 72.89\%         & 54\\
-Raw, Random Forest                 & 79.80\%         & N/A\\ 
-Raw, Support Vector Classifier     & 55.28\%         & N/A\\    
+Raw, Random Forest                 & 80.28\%         & N/A\\ 
+Raw, Support Vector Classifier     & 65.16\%         & N/A\\    
 Summary, Fully-Connected NN        & 62.60\%         & 13\\
 Summary, Convolutional NN          & 72.89\%         & 54\\
 Summary, Random Forest             & 79.80\%         & N/A\\

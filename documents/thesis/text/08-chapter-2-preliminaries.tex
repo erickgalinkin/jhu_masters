@@ -4,9 +4,9 @@
 
 \section{A Whirlwind Tour of Information Theory}
 Information theory is a woefully underused tool in the study of neural networks. 
-Since is is useful to apply information theory to the results of our experiments, the terminology and theory necessary for this explanation is contained below.
+Since it is useful to apply information theory to the results of our experiments, the terminology and theory necessary for this explanation is contained below.
 For the following proofs, all random variables are assumed to be discrete. 
-This is both because binary computers have only finite precision, and are thus not "truly" continuous but also because discrete information theory is a far more mature science in that many foundational results are proven only in the discrete case.
+This is both because binary computers have only finite precision, and are thus not ``truly'' continuous but also because discrete information theory is a far more mature science in that many foundational results are proven only in the discrete case.
 Additionally, in the continuous case, we must take care to avoid divergence to infinity, which is not a problem in the discrete case.
 
 First, we define entropy as the measure of uncertainty of a random variable.
@@ -17,7 +17,7 @@ Here our logarithm is to the base 2, as information is most commonly represented
 We maintain this definition of the logarithm throughout. 
 
 In the case where we are examining two random variables, for example, a dataset and its labels, we may want to consider the joint and conditional entropy of those random variables.
-The joint density of a pair or discrete random variables $(X, Y)$ with joint distribution $p(X, Y)$ is:
+The joint density of a pair of discrete random variables $(X, Y)$ with joint distribution $p(X, Y)$ is:
 $$H(X, Y) = - \sum_{x \in \mathcal{X}} \sum_{y \in \mathcal{Y}} p(x, y) \log{p(x, y)}$$
 
 and the differential entropy $H(Y | X)$ as:
@@ -45,9 +45,8 @@ Then $I(X'; Y) = I(X; Y)$.
 Given the Jacobi determinant $J_X = ||\partial X/ \partial X'||$, we observe that the joint distribution of $X'$ and $Y$ is given by: $f_{X', Y}(x', y) = J_X(x')f(x, y)$
 
 \begin{align*}
-I(X'; Y) & = \int \int f(x', y) \log_2 \frac{f(x', y)}{f_{X'}(x') f_{Y}(y)} dy dx'\\
-& = \int \int J_X(x')f(x, y) \log_2 \frac{J_X(x')f(x, y)}{J_X(x')f_{X}(x)f_{Y}(y)} dy dx'\\
-& = \int \int f(x, y) \log_2 \frac{f(x, y)}{f_{X}(x) f_{Y}(y)} dy dx \\
+I(X'; Y) & = \int \int f(x', y) \log \frac{f(x', y)}{f_{X'}(x') f_{Y}(y)} dy dx'\\
+& = \int \int f(x, y) \log \frac{f(x, y)}{f_{X}(x) f_{Y}(y)} dy dx \\
 & = I(X; Y)
 \end{align*}
 \end{proof}
@@ -62,3 +61,29 @@ The information bottleneck learns the representation $\hat{X}$ subject to the ab
 The standard cross-entropy loss is recovered as $\beta \to \infty$. 
 Further work by Alemi \textit{et al.}~\cite{alemi2016deep} suggests further refinements on the information bottleneck theory which we do not discuss in detail here. 
 
+\section{Information Geometry of Neural Networks}
+A neural network, as mentioned briefly in \ref{intro:nn}, is a form of connectionist machine learning which is a universal approximator under minor assumptions about the activation function~\cite{goodfellow2016deep}.
+In particular, a neural network connects many artificial neurons which receive input $x$ and emit output $y$. 
+The forward pass of a single neuron gives us:
+$$y = \sigma(w \cdot x + \beta)$$
+Where $\sigma$ is an activation function meeting the aforementioned assumptions, and $\beta$ is a bias vector which can be set to zero and not learned.
+For simplicity's sake, $\beta$ is omitted and assumed to be zero from this point without loss of generality.
+Then a two-layer neural network can be completely specified by layer weights:
+$$\xi = (w_1, ..., w_m; v_1, ..., v_m)$$
+and our simplified neural network output is given by:
+$$y = f(x, \xi) = v\sigma(w \cdot x)$$
+
+Letting $M$ be the parameter space of all neural networks allows us to specify $\xi$ as a coordinate system over $M$, which is a manifold of dimension $N=(n+1)m$, where $n$ is the dimension of the input, and $m$ is the number of neurons in the hidden layer.
+This manifold is where learning occurs, with $\xi$ being modified by stochastic gradient descent. 
+Since this manifold contains sets of points $\xi \neq \xi'$ for which $f(x, \xi) = f(x, \xi')$, then we cannot uniquely identify $\xi$ from the output function. 
+In the case of vanishing gradients~\cite{hochreiter2001gradient} or ``dead neurons'', we have some $\xi$ for which $f(x, \xi) \approx 0$ which suggests that either $v$ or $w$ is 0 or very close to 0.
+In this case, we specify the critical region $R$ of $M$:
+$$R = \{\xi | v \approx 0 \text{ or } w \approx 0\}$$
+Since all of the points of $R$ are equivalent, it is a singular region.
+This suggests why the trajectory of learning may plateau for a long time before escaping~\cite{amari2006singularities}.
+
+Given the above results, it seems prudent to consider that by definition of homeomorphism, any smooth, bijective map applied to our dataset will only deform the manifold which is parameterized by $\xi$. 
+Thus, we conclude that the manifold learning theory and the information bottleneck theory are related: the bottleneck optimality equation is a location where the differential entropy is minimized - a singular region of the manifold $M$.
+This also suggests the benefits of Natural Gradient Learning~\cite{cousseau2008dynamics} which are not employed in our following experiments.
+Additionally, we conclude that since both $M$ and mutual information are invariant to homeomorphism, then the results of training via stochastic gradient descent should be unaffected by changing our data up to homeomorphism.
+This theory is borne out and discussed in the context of our experiments in \ref{chap:conclusion}
