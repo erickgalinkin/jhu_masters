@@ -12,15 +12,15 @@
 \label{append:two}
 
 \section{Models}
-All code\footnote{Code is available at the following url: \url{https://github.com/erickgalinkin/jhu_masters}} was written in Python, using the Tensorflow 2.0, PyTorch, and Scikit-learn libraries.
+All code\footnote{Code is available at the following url: \url{https://github.com/erickgalinkin/jhu_masters}} was written in Python, using the Tensorflow 2, PyTorch, and Scikit-learn libraries.
 Only the baseline models described in \ref{other models} used the Scikit-learn library, and only the Wavelet Convolutional network described in \ref{wavelet cnn} used PyTorch.
 The remaining models all used the Tensorflow framework.
 All models were trained and tested on a 2018 MacBook Pro with 32GB of RAM and a 2.9GHz Intel Core i9 processor.
 Given the small size of the data and relative simplicity of the models, GPU acceleration was not needed.
 The sections here describe only the details of the architecture.
-An overview of the machine learning algorithms is provided in appendix~\ref{append:one}, and a more thorough treatment is available in Hastie~\cite{hastie01statisticallearning} or James~\cite{james14introduction}
+A more thorough theoretical treatment is available in Hastie~\cite{hastie01statisticallearning} or James~\cite{james14introduction}
 
-\subsection{Standard Fully-Connected Neural Network}
+\subsection{Fully-Connected Neural Network}
 The fully-connected neural network architecture accepts, as input, a 1x100 row-vector.
 This vector is then fed to three densely connected layers, each with 256 ReLU-activated neurons.
 The output neuron is a single sigmoid-activated neuron, which provides a probability of traffic being benign.
@@ -29,7 +29,7 @@ The output neuron is a single sigmoid-activated neuron, which provides a probabi
 Our standard convolutional neural network is a sequential model which accepts the same sort of input as our fully-connected neural network, and passes it to an architecture comprised of two convolution and max-pooling blocks, followed by batch normalization, and then passed to two densely connected layers of 128 neurons each. The architecture is visualized below in figure \ref{fig:conv net}.
 
 \begin{figure}[ht]
-\caption{Standard Convolutional Neural Network Architecture}
+\caption{Convolutional Neural Network Architecture}
 \label{fig:conv net}
 \includegraphics[width=\textwidth]{conv_architecture}
 \centering

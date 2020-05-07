@@ -4,14 +4,36 @@
 % Introduction
 Since the applications of neural networks are so varied, and have had success in the security domain~\cite{raff2018malware}, we have attempted to apply neural networks to the Watkins~\cite{watkins2013using} dataset.
 Briefly, this dataset consists of interarrival times for packets sent to Android devices, some of which were running malware.
-The interarrival time was collected for each ping packet, and the 
+The interarrival time for each running piece of software was collected for each of 100 ICMP ping packets, 5 times for each piece of software.
 
 \section{Data}
-Summary statistics for the aforementioned malware datasets are in Table~\ref{Tab:summary}. 
-For the non-raw datasets, only the first word of the transformed dataset is included (\textit{e.g.}, Fourier Transformed Request-Reply becomes ``Fourier Request''
+For our purposes, we leveraged four different datasets. 
+Summary statistics for the malware datasets are in Table~\ref{Tab:summary}. 
+
+\subsection{Raw data}
+This is the data as described above, captured by Yu and Li~\cite{Yu2018Network} in accordance with Watkins~\cite{watkins2013using}.
+In this dataset, only the raw measurements are used in a 100-dimensional row vector, with a label of 0 for benign and 1 for malicious.
+
+\subsection{Summary data}
+The summary data leverages the seven features used by Yu and Li: arithmetic mean, standard deviation, variance, maximum, minimum, geometric mean, and harmonic mean. 
+These features were fed to the classifier based on the sample they were captured from as a 7-dimensional row vector.
+
+\subsection{Fourier data}
+This dataset is a copy of the raw data under the Fourier transform.
+In particular, since our raw data is given by a single 100-dimensional row vector, it is a direct mapping of that row vector under the Fast Fourier Transform as provided by the numpy library.
+
+\subsection{Wavelet data}
+The wavelet dataset is a copy of the raw data under a continuous wavelet transform. 
+The Morlet wavelet is used for the transform for several reasons:
+First, it is a wavelet which allows us to maintain the dimensionality of our data, making it easier to compare in performance and to re-use neural network architectures.
+Secondly, the Morlet wavelet is closely related to human perception~\cite{mallat1999wavelet, daugman1985uncertainty}, providing a small connection to the human brain conception of neural networks.
+Lastly, the Morlet wavelet is uniquely invertible, which is not the case for all potential mother wavelets. 
+Since both detail and approximation coefficients are produced by the wavelet transform, but the detail coefficient-only results were identical to the results where both were used in all trials, the two-channel data was used.
+This likely relates to the volume of high-frequency parameters in the parameter space~\cite{rahaman2018spectral} and the vanishing gradients experienced by the low-pass approximation coefficient values close to zero.
+Further investigation of the density of information in different bands of the signal has been considered by de Oliveira \textit{et al.}~\cite{de2006wavelet} but is outside the scope of this document.
 
 One interesting effect of performing the transforms on the dataset is that while the continuous wavelet transform reduces our variance significantly and slightly normalizes the dataset, the Fourier transform has the opposite effect, introducing tremendous amounts of noise into the dataset.
-As we discuss in section~\ref{data representation}, this likely has a meaningful impact on how much the network can learn, and may also explain some of the results found by Pratt \textit{et al.}~\cite{pratt2017fcnn}.
+Given our results in \ref{invariance}, we would expect this not to have a meaningful impact on the accuracy, though increased variance is likely to have an impact on time to convergence.
 
 \renewcommand{\thefootnote}{*} 
 \begin{table}[h]
@@ -20,12 +42,9 @@ As we discuss in section~\ref{data representation}, this likely has a meaningful
 \label{Tab:summary}	
 \begin{tabular}{l|llll}
 \textbf{Dataset Name} & \textbf{Mean} & \textbf{Median} & \textbf{Mean Var.} & \textbf{Median Var.} \\\cline{1-5}
-Request-Reply         & 27.43    & 10.07    & 8329.96    & 7663.89 \\
-Reply-Reply           & 98.52    & 100.93   & 2688.85    & 2465.29 \\
-Fourier Request       & 58.60\footnotemark    & -1.45    & 12229005.34    & 7418186.12 \\
-Fourier Reply         & 100.19\footnotemark    & -6.82    & 119373138.03    & 122613924.30 \\
-Wavelet Request       & 1.30    & -.072    & 1887.5    & 1507.16 \\
-Wavelet Reply         & 1.03    & 0.12    & 2224.56    & 2135.86                 
+Raw         & 27.43    & 10.07    & 8329.96    & 7663.89 \\
+Fourier       & 58.60\footnotemark    & -1.45    & 12229005.34    & 7418186.12 \\
+Wavelet        & 1.30    & -.072    & 1887.5    & 1507.16 \\             
 \end{tabular}
 \end{table}
 \footnotetext{There is an extremely small, but non-zero imaginary part, on the order of $10^{-19}i$}
@@ -33,23 +52,38 @@ Wavelet Reply         & 1.03    & 0.12    & 2224.56    & 2135.86
 \renewcommand{\thefootnote}{1}
 It is worth noting that the small but non-zero imaginary part in the Fourier data required implementation of methods from Trabelsi \textit{et al.}~\cite{trabelsi2017deep} to achieve acceptable results.
 
+\section{Models}
+For each of the aforementioned datasets, with the exception of the Summary Statistic dataset, we leveraged each of the following models:
+\begin{itemize}
+\item Fully Connected Neural Network
+\item Convolutional Neural Network
+\item Random Forest
+\item Support Vector Classifier	
+\end{itemize}
+
+The summary statistic dataset was not used with the convolutional neural network because there is no spatial relationship between the data.
+Details of the model architectures are provided in \ref{append:two}.
+
+\section{Methodology and Results}
+Hardware specifications on which these models ran is in \ref{append:one}.
+In order to ensure that deviations in the dataset did not induce significant variation in accuracy, this experiment was run 100 times, and the accuracy and mean step time for all trials was averaged.
+
 \begin{table}[ht]
 \caption{Android App Data Test Results}
 \centering
 \label{Tab:test}	
 \begin{tabular}{lll}
 Data and Architecture Combination & Test Accuracy & mean step time (ms) \\
-Raw, Fully-Connected NN            & 61.87\%         & 13\\
+Raw, Fully-Connected NN            & 63.40\%         & 13\\
 Raw, Convolutional NN              & 72.89\%         & 54\\
 Raw, Random Forest                 & 80.28\%         & N/A\\ 
-Raw, Support Vector Classifier     & 65.16\%         & N/A\\    
-Summary, Fully-Connected NN        & 62.60\%         & 13\\
-Summary, Convolutional NN          & 72.89\%         & 54\\
-Summary, Random Forest             & 79.80\%         & N/A\\
+Raw, Support Vector Classifier     & 65.77\%         & N/A\\    
+Summary, Fully-Connected NN        & 55.14\%         & 13\\
+Summary, Random Forest             & 76.91\%         & N/A\\
 Summary, Support Vector Classifier & 55.28\%         & N/A\\  
-Fourier, Fully-Connected NN        & 58.88\%         & 12\\
+Fourier, Fully-Connected NN        & 59.88\%         & 12\\
 Fourier, Convolutional NN          & 70.81\%         & 56\\
-Fourier, Random Forest             & 79.80\%         & N/A\\
+Fourier, Random Forest             & 79.63\%         & N/A\\
 Fourier, Support Vector Classifier & 55.28\%         & N/A\\  
 Wavelet, Fully-Connected NN        & 61.95\%         & 12\\
 Wavelet, Convolutional NN          & 70.77\%         & 52\\
@@ -58,4 +92,8 @@ Wavelet, Support Vector Classifier & 55.28\%         & N/A
 \end{tabular}
 \end{table}
 
-
+In terms of pure accuracy, we find that the random forest on the raw data gives us the best accuracy, followed closely by the random forest on the wavelet-transformed data, and third the random forest trained on the Fourier-transformed data. 
+Notably, when we compare accuracy by model, we find that for the fully-connected neural network, our maximum average accuracy is 63.40\%, while our minimum average accuracy is given by the summary statistics.
+Excluding the summary statistic data, the difference between the highest average accuracy and lowest average accuracy for fully-connected neural networks is 3.52\%, a very small margin. 
+Comparatively, for the convolutional neural network, our delta is 2.12\%, again - quite small. 
+Similarly, the random forest performs near the 80\% mark universally, irrespective of representation, and performs worst on the summary statistic dataset. 
