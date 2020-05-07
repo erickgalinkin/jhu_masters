@@ -1,9 +1,34 @@
-\chapter{Experiment 3 - Dataset and in-Network Transformation of CIFAR-10}
+\chapter{Experiment 3 - Dataset and in-Network Transformation of MNIST}
 \label{chap:five}
 
-\sect{Motivation}
-In order to contextualize the results of experiments 1 and 2, we consider the methods presented there on the well-studied  CIFAR-10~\cite{krizhevsky2009learning} dataset.
-CIFAR-10 is a benchmark in computer vision - since our baseline convolutional neural network is based on LeNet, we have a large body of research to compare to.
+\section{Motivation}
+In order to contextualize the results of experiments 1 and 2, we consider the methods presented there on the well-studied  MNIST~\cite{lecun1998mnist} dataset.
+MNIST is a benchmark in computer vision - since our baseline convolutional neural network is based on LeNet~\cite{lecun1998gradient}, we have a large body of research to compare to.
 
-\sect{Results}
-asdfasdf
+\section{Methodology}
+In order to maintain consistency with our other findings, our methodology is quite similar to \ref{chap:three} and \ref{chap:four}, leveraging the same hardware as in \ref{append:one} and the same model details as in \ref{append:two}.
+In this case, our dataset differs from our previous two experiments by virtue of being a ``true'' image dataset. 
+As a result, some preprocessing work was required to reshape our 32 x 32 images into a flat vector, this is done without loss of information.
+
+\section{Results}
+
+\begin{table}[h]
+\caption{Neural Network Results}
+\centering
+\label{Tab:test}	
+\begin{tabular}{lll}
+Data and Architecture  & Test Accuracy & mean step time ($\mu$s) \\
+Raw, Fully-Connected NN            & 97.73\%         & 29\\
+Raw, Convolutional NN              & 99.11\%         & 204\\  
+Raw, Fourier NN                    & 98.45\%         & 959\\
+Raw, Wavelet NN                    & 98.89\%         & 1068\\ 
+Fourier, Fully-Connected NN        & 98.12\%         & 41\\
+Fourier, Convolutional NN          & 99.10\%         & 237\\
+Wavelet, Fully-Connected NN        & 97.83\%         & 30\\
+Wavelet, Convolutional NN          & 99.10\%         & 212\\
+\end{tabular}
+\end{table}
+
+In this case, all of our models achieve accuracy over 97\% which is broadly considered to be the benchmark accuracy for MNIST. 
+For all these combinations of architecture and transformation, the difference between our maximum accuracy score of 99.11\% and our minimum accuracy of 97.73\% is only 1.38\%.
+Comparing the convolutional models in particular, the difference between the Raw, Fourier-transformed, and Wavelet-transformed data is only 0.01\%. 

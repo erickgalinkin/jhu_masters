@@ -55,8 +55,12 @@ In the interest of broad understanding, the term convolutional neural network is
 The Wavelet Convolutional Neural Network implements similar functionality to our Fourier Neural Network, using the Continuous Wavelet Transform in lieu of the Fourier transform.
 Due to the fact that there is a time component and a frequency component, the wavelet neural network has a higher dimensionality than our other models.
 
-Details of the Wavelet Neural Network are pending a significant code revision.
-This revision is due to some late work associated with the inversion of the continuous wavelet transform.
+The network is constructed to accept a 100-dimensional row vector as input.
+This input is then sent to the "wavelet layer" where it undergoes a Daubechies discrete wavelet transform.
+The output is cast to a tensor which is multiplied against the transpose of the weight tensor.
+This output then undergoes an inverse discrete wavelet transform with respect to the same mother wavelet.
+As a result, the output of the layer remains the same shape as the input to the layer and so this architecture differs slightly from the other networks, since we do not use max pooling. 
+The effect of this change to the architecture is not significant enough to be noteworthy.
 
 \subsection{Other Models} \label{other models}
 Two baseline models were considered.

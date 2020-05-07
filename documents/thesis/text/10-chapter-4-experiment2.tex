@@ -1,27 +1,49 @@
 \chapter{Experiment 2 - In-Network Malware Dataset Transformation}
 \label{chap:four}
 
+In this experiment, we consider the work of Pratt~\cite{pratt2017fcnn} and Fujieda~\cite{fujieda2017wavelet} under the mutual information theory.
+Both the Fourier and Wavelet neural networks take advantage of the convolution theorem - that is, given two functions $f$ and $g$,
+\begin{align}
+(f * g)(t) & = \int_{-\infty}^{\infty} f(\tau)g(t-\tau)dt \\
+& = \int_{\mathbb{R}^n}f(x) e^{-2\pi i x \nu} dx	 \cdot \int_{\mathbb{R}^n}g(x) e^{-2\pi i x \nu} dx	
+& = \mathcal{F}\{f\}(\nu) \cdot \mathcal{F}\{g\}(\nu)
+\end{align}
 
-\sect{Malware Classifier} \label{malware classifier}
-As shown in Table~\ref{Tab:test}, the Random forest classifier outperforms all of the neural network and support vector machine architectures.
-It is also noteworthy that the Fourier-transformed data fed to the convolutional Neural Network appears to misclassify an extremely high percentage of samples, and by flipping the labels on the test samples, we actually achieve 72.6\% accuracy, making it our second most accurate neural network classifier.
+and in the inverse, we get:
+$$f \cdot g = \mathcal{F}^-1\{\mathcal{F}\{f\} * \mathcal{F}\{g\}\}$$
 
- 
+This allows us to avoid the high computational cost of performing a convolution via the sliding-tile method and instead potentially take advantage of the convolution theorem to perform convolution at the speed of the dot product.
+
+\section{Methodology}
+In this experiment, we use the same raw dataset, fully-connected neural network, and convolutional neural network as before, and we report the results of the ``control group'', the support vector classifier and random forest.
+The results of these experiments are verbatim from \ref{chap:three}.
+We also introduce two additional models to evaluate the effect of transformation on the learned representations.
+The Fourier network and wavelet network differ from a conventional convolutional neural network by performing an in-layer transformation before the activation function is applied. 
+Other than this difference in how the convolution is performed, the architecture of the Fourier network is identical to our convolutional network, and our wavelet network removes the pooling layers for reasons explained along with other architecture details in \ref{append:two}
+These models were trained and evaluated on the same hardware as in \ref{chap:three}, with details in \ref{append:one}.
+As before, the model accuracy was recorded over 100 trials and the average accuracy and average mean step time are reported.
+
+\section{Results}
 \begin{table}[ht]
-\caption{Android App Data Test Results}
+\caption{Neural Network Results}
 \centering
 \label{Tab:test}	
 \begin{tabular}{lll}
-Data and Architecture Combination & Test Accuracy & mean step time (ms) \\
-Raw, Fully-Connected NN           & 62.60\%         & 13\\
-Raw, Convolutional NN             & 72.89\%         & 54\\
-Fourier, Fully-Connected NN       & 58.88\%         & 12\\
-Fourier, Convolutional NN         & 70.81\%         & 56\\
-Wavelet, Fully-Connected NN       & 61.95\%         & 12\\
-Wavelet, Convolutional NN         & 70.77\%         & 52\\
-Raw, Fourier NN                   & 66.59\%         & 553\\
-Raw, Wavelet NN                   & 73.33\%         & 623\\
-Raw, Random Forest                & 79.80\%         & N/A\\
-Raw, Support Vector Classifier    & 55.28\%         & N/A           
+Architecture  & Test Accuracy & mean step time ($\mu$s) \\
+Fully-Connected NN            & 63.40\%         & 13\\
+Convolutional NN              & 72.89\%         & 54\\  
+Fourier NN                    & 63.27\%         & 143\\
+Wavelet NN                    & 84.85\%         & 228\\
+Random Forest                 & 80.28\%         & N/A\\ 
+Support Vector Classifier     & 65.77\%         & N/A       
 \end{tabular}
 \end{table}
+
+Again, the random forest outperforms all of our other classifiers.
+It is worth noting that one of the primary motivations for replacing the sliding-tile convolution method with a Fourier or Wavelet method is the performance.
+However, as we observe, the Fourier and Wavelet networks are significantly slower than their untransformed counterparts.
+We conclude that the computational overhead of performing a transform and its corresponding inverse transform outweighs the speed-up gained by eliminating the sliding-tile convolution on smaller datasets, and the method as demonstrated in Pratt~\cite{pratt2017fcnn} should be reserved for relatively large images, where convolution is extremely slow.
+In our case, we see a 2.65x increase in step time between a standard convolution and the Fourier method. 
+Unfortunately, our activation functions do not behave nicely in the Fourier or Wavelet domain, as they operate linearly with respect to the space. 
+The question of using a novel convolution operator and conducting the activation in that space has been addressed by Chakraborty~\cite{chakraborty2019surreal} but goes well beyond the question of simply adapting an activation function to the Fourier or Wavelet space.
+The search for a "spectral activation" function is still an open question.
