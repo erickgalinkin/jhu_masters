@@ -3,7 +3,9 @@ import tensorflow as tf
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from pytorch_wavelets import DWTForward, DWTInverse
+import numpy as np
+import pandas as pd
+import pywt
 
 tf.keras.backend.set_floatx('float32')
 cuda = torch.cuda.is_available()
@@ -42,29 +44,29 @@ class FourierConvLayer(Layer):
 
 
 class WaveletLayer(nn.Module):
-    def __init__(self, d_in, bias=True):
+    def __init__(self, d_in, bias=False):
         super(WaveletLayer, self).__init__()
         self.d_in = d_in
-        self.xfm = DWTForward(J=1, mode='symmetric', wave='db2')
-        self.ifm = DWTInverse(mode='symmetric', wave='db2')
-        # if cuda:
-        #     self.xfm.cuda()
-        #     self.ifm.cuda()
         self.weight = torch.nn.Parameter(torch.randn((2, (int(d_in/2) + 1))))
         if bias:
             self.bias = torch.nn.Parameter(torch.randn((int(d_in/2) + 1)))
 
     def forward(self, x):
-        dim_1, dim_2, dim_3, y = x.shape
-        if y != self.d_in:
-            sys.exit('Incorrect Input Features. Please use a tensor with {} Input Features'.format(self.d_in))
-        Yl, Yh = self.xfm(x)
-        output = torch.mm(self.weight.T, Yl[0][0]) + self.bias
-        output = output[:2]
-        Yl_o = output.view(1, 1, 2, (1 + int(self.d_in/2)))
-        z = self.ifm((Yl_o, Yh))
-        a = z.view(dim_1, dim_2, 2*dim_3, y)
-        return F.leaky_relu(a)
+        if isinstance(x, pd.Series):
+            x = x.to_numpy()
+        if isinstance(x, np.ndarray):
+            x = torch.from_numpy(x)
+        shape = x.size()
+        cA, cD = pywt.dwt(x.data.numpy(), 'db2')
+        output = np.multiply(self.weight.data.numpy()[0], cD)
+        try:
+            z = torch.from_numpy(pywt.idwt(cA, output, 'db2')).float()
+        except RuntimeError as e:  # We get runtime errors when output is a zero vector.
+            print("Blah")
+            z = x.float()
+        a = z.view(shape)
+        out = F.leaky_relu(a)
+        return out
 
 
 class WaveletNN(nn.Module):
@@ -74,14 +76,12 @@ class WaveletNN(nn.Module):
         self.model = nn.Sequential(
             WaveletLayer(d_in),
             WaveletLayer(d_in),
-            nn.MaxPool1d(2, 2),
-            nn.BatchNorm1d(1),
-            nn.Flatten(),
-            nn.Linear(400, 256),
+            nn.Linear(100, 256),
             nn.ReLU(True),
             nn.Linear(256, 128),
             nn.ReLU(True),
-            nn.Linear(128, 1)
+            nn.Linear(128, 1),
+            nn.Sigmoid()
         )
 
     def forward(self, x):
@@ -94,3 +94,6 @@ if __name__ == "__main__":
     wl = WaveletLayer(100)
     y = wl(x)
     print(y.shape)
+    wavelet = WaveletNN(100)
+    output = wavelet(x)
+    print(output)
