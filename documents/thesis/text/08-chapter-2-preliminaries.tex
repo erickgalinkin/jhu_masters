@@ -2,14 +2,12 @@
 \label{chap:two}
 %\newpage
 
-\section{A Whirlwind Tour of Information Theory}
-Information theory is a woefully underused tool in the study of neural networks. 
-Since it is useful to apply information theory to the results of our experiments, the terminology and theory necessary for this explanation is contained below.
+\section{A Whirlwind Tour of Information Theory} 
+Since our work makes use of information theory, it is helpful to cover the core terminology.
 For the following proofs, all random variables are assumed to be discrete. 
 This is both because binary computers have only finite precision, and are thus not ``truly'' continuous but also because discrete information theory is a far more mature science in that many foundational results are proven only in the discrete case.
-Additionally, in the continuous case, we must take care to avoid divergence to infinity, which is not a problem in the discrete case.
 
-First, we define entropy as the measure of uncertainty of a random variable.
+First, we define entropy as the measure of uncertainty of a single random variable.
 Let $X$ be a random variable with alphabet $\mathcal{X}$ and probability mass function $p(x) = \\Pr\{X = x\}, x \in \mathcal{X}$.
 Then the entropy of $X$, represented $H(X)$ is defined as
 $$H(X) = -\sum_{x \in \mathcal{X}} p(x) \log{p(x)}$$
@@ -26,10 +24,10 @@ $$ h(Y|X) = -\sum_{x \in \mathcal{X}} \sum_{y \in \mathcal{Y}} p(x, y) \log{p(y|
 We define the Kullback-Leibler divergence $D(f||g)$ between two probability mass functions $p(x)$ and $q(x)$ to be:
 $$D(f||g) = \sum_{x \in \mathcal{X}} p(x) \log{\frac{p(x)}{q(x)}}$$
 
-Armed with the above knowledge, we define mutual information, $I(X; Y)$ as the relative entropy between the joint distribution and the product distribution.
+Therefore, we define mutual information, $I(X; Y)$ as the relative entropy between the joint distribution and the product distribution.
 $$I(X; Y) = \sum_{x, y} p(x, y) \log{\frac{p(x,y)}{p(x) p(y)}} = H(Y) - H(Y|X)$$
 
-Detailed derivation of the above results are all available in \cite{coverthomas2006}.
+Detailed derivation of the above results are available in \cite{coverthomas2006}.
 
 \section{Invariance of Mutual Information in Neural Networks}\label{invariance}
 
@@ -50,20 +48,31 @@ I(X'; Y) & = \int \int f(x', y) \log \frac{f(x', y)}{f_{X'}(x') f_{Y}(y)} dy dx'
 & = I(X; Y)
 \end{align*}
 \end{proof}
-concluding our proof that mutual information is transformation invariant. 
 
-\section{The Information Bottleneck Theory of Neural Networks}
-Naftali Tishby and Noga Zaslavsky introduced the information bottleneck theory of neural networks~\cite{tishby2015deep} as a way of explaining the theoretical generalization bounds of neural nets.
+\section{Minimum Necessary Information and Information Bottleneck}
+Naftali Tishby and Noga Zaslavsky introduced the information bottleneck theory of neural networks~\cite{tishby2015deep} as a way of explaining the theoretical generalization bounds of neural networks.
 In particular, Tishby and Zaslavsky show that any deep neural network can be quantified by the mutual information between the input, hidden layers, and the output variable by way of information per the data processing inequality.
 Neural networks satisfy the information bottleneck optimality equation
-$$\min_{p(\hat{x}|x):Y \to X \to \hat{X}} I(\hat{X};X) - \beta I(\hat{X}; Y) , \beta > 0$$
-The information bottleneck learns the representation $\hat{X}$ subject to the above constraint, where $\beta$ controls the strength of the constraint.
+$$\min_{p(z|x):Y \to X \to Z} I(Z;X) - \beta I(Z; Y) , \beta > 0$$
+The information bottleneck learns the representation $Z$ subject to the above constraint, where $\beta$ controls the strength of the constraint.
 The standard cross-entropy loss is recovered as $\beta \to \infty$. 
 Further work by Alemi \textit{et al.}~\cite{alemi2016deep} suggests further refinements on the information bottleneck theory which we do not discuss in detail here. 
 
+The Minimum Necessary Information as defined by Fischer~\cite{fischer2020conditional} consists of three components for a learned representation:
+\begin{enumerate}
+	\item \textbf{Information} We would like a representation $Z$ which captures useful information about a dataset $(X, Y)$.
+	\item \textbf{Necessity} The value of information to accomplish a task. In this case, predicting $Y$ given $X$ using our representation $Z$. That is, $I(X; Y \leq I(Y; Z)$
+	\item \textbf{Minimality} Given all representations that can solve the task, we prefer the one which retains the smallest amount of mutual information. That is, $I(X; Y) \geq I(X; Z)$.
+\end{enumerate}
+Using Fischer's definitions of necessity and minimality, we see that there is a point which he calls the ``MNI Point'':
+$$I(X; Y) = I(X; Z) = I(Y; Z)$$
+This equation may not be satisfiable, since for any representation $Z$ given a dataset $(X, Y)$, there is a maximum value we are subject to:
+$$1 \geq D(X||Z) = \sup_{Z \leftarrow X \rightarrow Y}\frac{I(Y; Z)}{I(X; Z)}$$
+We achieve equality if and only if $X \to Y$ is a deterministic map.
+
 \section{Information Geometry of Neural Networks}
-A neural network, as mentioned briefly in \ref{intro:nn}, is a form of connectionist machine learning which is a universal approximator under minor assumptions about the activation function~\cite{goodfellow2016deep}.
-In particular, a neural network connects many artificial neurons which receive input $x$ and emit output $y$. 
+A neural network, as mentioned briefly in chapter \ref{intro:nn}, is a form of connectionist machine learning which is a universal approximator under minor assumptions about the activation function~\cite{goodfellow2016deep}.
+In particular, a neural network connects many artificial neurons which receive input $x$ and emit output a prediction of $y$. 
 The forward pass of a single neuron gives us:
 $$y = \sigma(w \cdot x + \beta)$$
 Where $\sigma$ is an activation function meeting the aforementioned assumptions, and $\beta$ is a bias vector which can be set to zero and not learned.
@@ -74,16 +83,13 @@ and our simplified neural network output is given by:
 $$y = f(x, \xi) = v\sigma(w \cdot x)$$
 
 Letting $M$ be the parameter space of all neural networks allows us to specify $\xi$ as a coordinate system over $M$, which is a manifold of dimension $N=(n+1)m$, where $n$ is the dimension of the input, and $m$ is the number of neurons in the hidden layer.
-This manifold is where learning occurs, with $\xi$ being modified by stochastic gradient descent. 
-Since this manifold contains sets of points $\xi \neq \xi'$ for which $f(x, \xi) = f(x, \xi')$, then we cannot uniquely identify $\xi$ from the output function. 
-In the case of vanishing gradients~\cite{hochreiter2001gradient} or ``dead neurons'', we have some $\xi$ for which $f(x, \xi) \approx 0$ which suggests that either $v$ or $w$ is 0 or very close to 0.
-In this case, we specify the critical region $R$ of $M$:
-$$R = \{\xi | v \approx 0 \text{ or } w \approx 0\}$$
-Since all of the points of $R$ are equivalent, it is a singular region.
-This suggests why the trajectory of learning may plateau for a long time before escaping~\cite{amari2006singularities}.
+This manifold is where learning occurs, with $\xi$ . 
+% Since this manifold contains sets of points $\xi \neq \xi'$ for which $f(x, \xi) = f(x, \xi')$, then we cannot uniquely identify $\xi$ from the output. 
+% This means we have some $\xi$ for which $f(x, \xi) = 0$ and so either $v$ or $w$ is the zero vector.
+% Given this definition, we specify the critical region $R$ of $M$:
+% $$R = \{\xi | v = 0 \text{ or } w = 0\}$$
 
 Given the above results, it seems prudent to consider that by definition of homeomorphism, any smooth, bijective map applied to our dataset will only deform the manifold which is parameterized by $\xi$. 
-Thus, we conclude that the manifold learning theory and the information bottleneck theory are related: the bottleneck optimality equation is a location where the differential entropy is minimized - a singular region of the manifold $M$.
-This also suggests the benefits of Natural Gradient Learning~\cite{cousseau2008dynamics} which are not employed in our following experiments.
-Additionally, we conclude that since both $M$ and mutual information are invariant to homeomorphism, then the results of training via stochastic gradient descent should be unaffected by changing our data up to homeomorphism.
-This theory is borne out and discussed in the context of our experiments in \ref{chap:conclusion}
+Since we optimize $\xi$ with respect to $I(X; Z)$, it stands to reason that as we approach the MNI point and our loss function approaches zero and our estimator $\xi$ approaches the Cram\'{e}r-Rao bound.`
+Additionally, we conclude that since both $M$ and mutual information are invariant to homeomorphism, then the results of training via stochastic gradient descent are also unaffected by homeomorphic transformation.
+This theory is borne out and discussed in the context of our experiments in chapter \ref{chap:conclusion}

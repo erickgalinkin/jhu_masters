@@ -1,49 +1,106 @@
-\chapter{Experiment 2 - In-Network Malware Dataset Transformation}
-\label{chap:four}
+\chapter{Experiment 2 - Malware Dataset Transformation}
+\label{chap:three}
+% Introduction
+Neural networks have demonstrated some success in the security domain~\cite{raff2018malware} and so we have applied neural networks to the Watkins~\cite{watkins2013using} dataset.
+Briefly, this dataset consists of interarrival times for packets sent to Android devices, some of which were running malware.
+Detecting malware via network traffic is an important problem, and this interpretation of the problem is crucial for addressing the situation where a device which is infected with malware is outside of the network owner's control.
+This is a common situation when personal devices are introduced to a corporate network, and so being able to detect malicious software on a device without having an agent on the device provides a tremendous benefit to network defenders.
 
-In this experiment, we consider the work of Pratt~\cite{pratt2017fcnn} and Fujieda~\cite{fujieda2017wavelet} under the mutual information theory.
-Both the Fourier and Wavelet neural networks take advantage of the convolution theorem - that is, given two functions $f$ and $g$,
-\begin{align}
-(f * g)(t) & = \int_{-\infty}^{\infty} f(\tau)g(t-\tau)dt \\
-& = \int_{\mathbb{R}^n}f(x) e^{-2\pi i x \nu} dx	 \cdot \int_{\mathbb{R}^n}g(x) e^{-2\pi i x \nu} dx	
-& = \mathcal{F}\{f\}(\nu) \cdot \mathcal{F}\{g\}(\nu)
-\end{align}
+\section{Data}
+For our experiment, we leveraged four different datasets whose summary statistics are in Table~\ref{Tab:summary}. 
+Our data consisted of 98 legitimate applications and 120 pieces of malware, which were collected by Yu and Li~\cite{yu2018network}.
+This gives us a dataset which is approximately 55\% malware and 45\% benignware.
+While this distribution is not reflective of real environments where malware is significantly rarer than benign applications, we do not adjust for this disparity since our tolerance for alerting on benign applications is much higher than our tolerance for not detecting malicious applications. 
+For each application, 5 trials were conducted where the interarrival time was collected for each of 100 ICMP ping packets.
+Further details of the data collection can be found in \cite{yu2018network, watkins2013using}
 
-and in the inverse, we get:
-$$f \cdot g = \mathcal{F}^-1\{\mathcal{F}\{f\} * \mathcal{F}\{g\}\}$$
+\subsection{Raw data}
+This is the data as described above, captured by Yu and Li in accordance with Watkins~\cite{watkins2013using}.
+In this dataset, only the raw measurements are used in a 100-dimensional row vector, with a label of 0 for benign and 1 for malicious.
 
-This allows us to avoid the high computational cost of performing a convolution via the sliding-tile method and instead potentially take advantage of the convolution theorem to perform convolution at the speed of the dot product.
+\subsection{Summary data}
+The summary data leverages the seven features used by Yu and Li: arithmetic mean, standard deviation, variance, maximum, minimum, geometric mean, and harmonic mean. 
+These features were fed to the classifier based on the sample they were captured from as a 7-dimensional row vector.
 
-\section{Methodology}
-In this experiment, we use the same raw dataset, fully-connected neural network, and convolutional neural network as before, and we report the results of the ``control group'', the support vector classifier and random forest.
-The results of these experiments are verbatim from \ref{chap:three}.
-We also introduce two additional models to evaluate the effect of transformation on the learned representations.
-The Fourier network and wavelet network differ from a conventional convolutional neural network by performing an in-layer transformation before the activation function is applied. 
-Other than this difference in how the convolution is performed, the architecture of the Fourier network is identical to our convolutional network, and our wavelet network removes the pooling layers for reasons explained along with other architecture details in \ref{append:two}
-These models were trained and evaluated on the same hardware as in \ref{chap:three}, with details in \ref{append:one}.
-As before, the model accuracy was recorded over 100 trials and the average accuracy and average mean step time are reported.
+\subsection{Fourier data}
+This dataset is a copy of the raw data under the Fourier transform.
+In particular, since our raw data is given by a single 100-dimensional row vector, it is a direct mapping of that row vector under the Fast Fourier Transform as provided by the numpy library.
 
-\section{Results}
-\begin{table}[ht]
-\caption{Neural Network Results}
+\subsection{Wavelet data}
+The wavelet dataset is a copy of the raw data under a continuous wavelet transform. 
+The Morlet wavelet is used for the transform for several reasons:
+First, it is a wavelet which allows us to maintain the dimensionality of our data, making it easier to compare in performance and to re-use neural network architectures.
+Secondly, the Morlet wavelet is closely related to human perception~\cite{mallat1999wavelet, daugman1985uncertainty}, providing a small connection to the human brain conception of neural networks.
+Lastly, the Morlet wavelet is uniquely invertible, which is not the case for all potential mother wavelets. 
+Since both detail and approximation coefficients are produced by the wavelet transform, but the detail coefficient-only results were identical to the results where both were used in all trials, the two-channel data was used.
+This likely relates to the volume of high-frequency parameters in the parameter space~\cite{rahaman2018spectral} and the vanishing gradients experienced by the low-pass approximation coefficient values close to zero.
+Further investigation of the density of information in different bands of the signal has been considered by de Oliveira \textit{et al.}~\cite{de2006wavelet} but is outside the scope of this document.
+
+One interesting effect of performing the transforms on the dataset is that while the continuous wavelet transform reduces our variance significantly and slightly normalizes the dataset, the Fourier transform has the opposite effect, introducing tremendous amounts of noise into the dataset.
+Given our results in \ref{invariance}, we would expect this not to have a meaningful impact on the accuracy, though increased variance is likely to have an impact on time to convergence.
+
+\renewcommand{\thefootnote}{*} 
+\begin{table}[h]
+\caption{Dataset Summary Statistics}
+\centering
+\label{Tab:summary}	
+\begin{tabular}{l|llll}
+\textbf{Dataset Name} & \textbf{Mean} & \textbf{Median} & \textbf{Mean Var.} & \textbf{Median Var.} \\\cline{1-5}
+Raw         & 27.43    & 10.07    & 8329.96    & 7663.89 \\
+Fourier       & 58.60\footnotemark    & -1.45    & 12229005.34    & 7418186.12 \\
+Wavelet        & 1.30    & -.072    & 1887.5    & 1507.16 \\             
+\end{tabular}
+\end{table}
+\footnotetext{There is an extremely small, but non-zero imaginary part, on the order of $10^{-19}i$}
+
+\renewcommand{\thefootnote}{1}
+It is worth noting that the small but non-zero imaginary part in the Fourier data required implementation of methods from Trabelsi \textit{et al.}~\cite{trabelsi2017deep} to achieve acceptable results.
+
+\section{Models}
+For each of the aforementioned datasets, with the exception of the Summary Statistic dataset, we leveraged each of the following models:
+\begin{itemize}
+\item Fully Connected Neural Network
+\item Convolutional Neural Network
+\item Random Forest
+\item Support Vector Classifier	
+\end{itemize}
+
+The summary statistic dataset was not used with the convolutional neural network because there is no spatial relationship between the data.
+
+
+\section{Methodology and Results}
+Hardware specifications on which these models ran is in \ref{append:one}.
+In order to ensure that deviations in the dataset did not induce significant variation in accuracy, this experiment was run 100 times, and the accuracy and mean step time for all trials was averaged.
+
+\begin{table}[h]
+\caption{Android App Data Test Results}
 \centering
 \label{Tab:test}	
-\begin{tabular}{lll}
-Architecture  & Test Accuracy & mean step time ($\mu$s) \\
-Fully-Connected NN            & 63.40\%         & 13\\
-Convolutional NN              & 72.89\%         & 54\\  
-Fourier NN                    & 63.27\%         & 143\\
-Wavelet NN                    & 84.85\%         & 228\\
-Random Forest                 & 80.28\%         & N/A\\ 
-Support Vector Classifier     & 65.77\%         & N/A       
+\begin{tabular}{l|ll}
+\textbf{Data and Architecture Combination} & \textbf{Test Accuracy} & \textbf{Mean Step Time} ($\mu$s) \\\cline{1-3}
+Raw, Fully-Connected NN            & 63.40\%         & 13\\
+Summary, Fully-Connected NN        & 55.14\%         & 13\\
+Fourier, Fully-Connected NN        & 59.88\%         & 12\\
+Wavelet, Fully-Connected NN        & 61.95\%         & 12\\
+\hline
+Raw, Convolutional NN              & 72.89\%         & 54\\
+Fourier, Convolutional NN          & 70.81\%         & 56\\
+Wavelet, Convolutional NN          & 70.77\%         & 52\\
+\hline
+Raw, Random Forest                 & 80.28\%         & N/A\\ 
+Summary, Random Forest             & 76.91\%         & N/A\\
+Fourier, Random Forest             & 79.63\%         & N/A\\
+Wavelet, Random Forest             & 79.80\%         & N/A\\
+\hline
+Raw, Support Vector Classifier     & 65.77\%         & N/A\\    
+Summary, Support Vector Classifier & 55.28\%         & N/A\\  
+Fourier, Support Vector Classifier & 55.28\%         & N/A\\  
+Wavelet, Support Vector Classifier & 55.28\%         & N/A           
 \end{tabular}
 \end{table}
 
-Again, the random forest outperforms all of our other classifiers.
-It is worth noting that one of the primary motivations for replacing the sliding-tile convolution method with a Fourier or Wavelet method is the performance.
-However, as we observe, the Fourier and Wavelet networks are significantly slower than their untransformed counterparts.
-We conclude that the computational overhead of performing a transform and its corresponding inverse transform outweighs the speed-up gained by eliminating the sliding-tile convolution on smaller datasets, and the method as demonstrated in Pratt~\cite{pratt2017fcnn} should be reserved for relatively large images, where convolution is extremely slow.
-In our case, we see a 2.65x increase in step time between a standard convolution and the Fourier method. 
-Unfortunately, our activation functions do not behave nicely in the Fourier or Wavelet domain, as they operate linearly with respect to the space. 
-The question of using a novel convolution operator and conducting the activation in that space has been addressed by Chakraborty~\cite{chakraborty2019surreal} but goes well beyond the question of simply adapting an activation function to the Fourier or Wavelet space.
-The search for a "spectral activation" function is still an open question.
+In terms of pure accuracy, we find that the random forest on the raw data gives us the best accuracy, followed closely by the random forest on the wavelet-transformed data, and third the random forest trained on the Fourier-transformed data. 
+Notably, when we compare accuracy by model, we find that for the fully-connected neural network, our maximum average accuracy is 63.40\%, while our minimum average accuracy is given by the summary statistics.
+Excluding the summary statistic data, the difference between the highest average accuracy and lowest average accuracy for fully-connected neural networks is 3.52\%, a very small margin. 
+Comparatively, for the convolutional neural network, our delta is 2.12\%, again - quite small. 
+Similarly, the random forest performs near the 80\% mark universally, irrespective of representation, and performs worst on the summary statistic dataset. 

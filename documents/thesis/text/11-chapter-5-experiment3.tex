@@ -1,34 +1,76 @@
-\chapter{Experiment 3 - Dataset and in-Network Transformation of MNIST}
-\label{chap:five}
+\chapter{Experiment 3 - In-Network Malware Dataset Transformation}
+\label{chap:four}
 
-\section{Motivation}
-In order to contextualize the results of experiments 1 and 2, we consider the methods presented there on the well-studied  MNIST~\cite{lecun1998mnist} dataset.
-MNIST is a benchmark in computer vision - since our baseline convolutional neural network is based on LeNet~\cite{lecun1998gradient}, we have a large body of research to compare to.
+In this experiment, we consider the work of Pratt~\cite{pratt2017fcnn} and Fujieda~\cite{fujieda2017wavelet} under the mutual information theory.
+Both the Fourier and Wavelet neural networks take advantage of the convolution theorem - that is, given two functions $f$ and $g$,
+\begin{align}
+(f * g)(t) & = \int_{-\infty}^{\infty} f(\tau)g(t-\tau)dt \\
+& = \int_{\mathbb{R}^n}f(x) e^{-2\pi i x \nu} dx	 \cdot \int_{\mathbb{R}^n}g(x) e^{-2\pi i x \nu} dx\\	
+& = \mathcal{F}\{f\}(\nu) \cdot \mathcal{F}\{g\}(\nu)
+\end{align}
+
+and in the inverse, we get:
+$$f \cdot g = \mathcal{F}^{-1}\{\mathcal{F}\{f\} * \mathcal{F}\{g\}\}$$
+
+This allows us to avoid the high computational cost of performing a convolution via the sliding-tile method and instead potentially take advantage of the convolution theorem to perform convolution at the speed of the dot product.
 
 \section{Methodology}
-In order to maintain consistency with our other findings, our methodology is quite similar to \ref{chap:three} and \ref{chap:four}, leveraging the same hardware as in \ref{append:one} and the same model details as in \ref{append:two}.
-In this case, our dataset differs from our previous two experiments by virtue of being a ``true'' image dataset. 
-As a result, some preprocessing work was required to reshape our 32 x 32 images into a flat vector, this is done without loss of information.
+In this experiment, we use the same raw dataset, fully-connected neural network, and convolutional neural network as before, and we report the results of the ``control group'', the support vector classifier and random forest.
+The results of these experiments are verbatim from \ref{chap:three}.
+We also introduce two additional models to evaluate the effect of transformation on the learned representations.
+The Fourier network and wavelet network differ from a conventional convolutional neural network by performing an in-layer transformation before the activation function is applied. 
+Other than this difference in how the convolution is performed, the architecture of the Fourier network is identical to our convolutional network, and our wavelet network removes the pooling layers for reasons explained along with other architecture details in \ref{append:two}.
+
+
+\subsection{Fourier Convolutional Neural Network}
+Our Fourier ``Convolutional'' neural network is identical architecturally to our standard convolutional neural network, only with the convolutional layers replaced by Fourier layers.
+Here, we put the word convolutional in quotes due to the fact that no actual convolution is performed.
+To be more intellectually honest, we should refer to this network instead as a ``Fourier Transform Cross Product Network'', though this may confuse readers unfamiliar with the relationship.
+In the interest of broad understanding, the term convolutional neural network is used when it helps clarify meaning even in spite of being a slight misnomer.
+
+Specifically, the Fourier Convolutional Neural Network leverages a custom Fourier layer, which moves the data into Fourier space via the Fast Fourier Transform and then multiplies the transpose of the weight matrix with the input to the matrix.
+Specifically, given an input $X^{(n)}$ and an output $A$, where the superscript is not an exponent, but instead indicates the layer of the input, the Fourier layer, $\ell$ acts on $X$:
+\begin{align*}
+X^{(n+1)} & = a \\
+& = \ell^{(n)}(X^{(n)}) \\
+& = \sigma(\mathcal{F}^{-1}(\mathcal{F}(X^{(n)})\cdot \mathbf{W}^{(n)\top}))
+\end{align*}
+Where $\mathcal{F}$ is the Fast Fourier Transform, $\sigma$ is the activation function - ReLU in this case - and $\mathbf{W}$ is the weight matrix for layer n.
+
+\subsection{Wavelet Convolutional Neural Network} \label{wavelet cnn}
+The network is constructed to accept a 100-dimensional row vector as input.
+This input is then sent to the "wavelet layer" where it undergoes a Daubechies discrete wavelet transform.
+The output is cast to a tensor which is multiplied against the transpose of the weight tensor.
+This output then undergoes an inverse discrete wavelet transform with respect to the same mother wavelet.
+As a result, the output of the layer remains the same shape as the input to the layer and so this architecture differs slightly from the other networks, since we do not use max pooling. 
+The effect of this change to the architecture is not significant enough to be noteworthy.
+
+The Wavelet Convolutional Neural Network implements similar functionality to our Fourier Neural Network, using the Continuous Wavelet Transform in lieu of the Fourier transform.
+Due to the fact that there is a time component and a frequency component, the wavelet neural network has a different in-layer dimensionality than our other models, but is otherwise architecturally nearly identical.
+These models were trained and evaluated on the same hardware as in \ref{chap:three}, with details in \ref{append:one}.
+As before, the model accuracy was recorded over 100 trials and the average accuracy and average mean step time are reported.
 
 \section{Results}
-
-\begin{table}[h]
+\begin{table}[ht]
 \caption{Neural Network Results}
 \centering
 \label{Tab:test}	
-\begin{tabular}{lll}
-Data and Architecture  & Test Accuracy & mean step time ($\mu$s) \\
-Raw, Fully-Connected NN            & 97.73\%         & 29\\
-Raw, Convolutional NN              & 99.11\%         & 204\\  
-Raw, Fourier NN                    & 98.45\%         & 959\\
-Raw, Wavelet NN                    & 98.89\%         & 1068\\ 
-Fourier, Fully-Connected NN        & 98.12\%         & 41\\
-Fourier, Convolutional NN          & 99.10\%         & 237\\
-Wavelet, Fully-Connected NN        & 97.83\%         & 30\\
-Wavelet, Convolutional NN          & 99.10\%         & 212\\
+\begin{tabular}{l|ll}
+\textbf{Architecture}  & \textbf{Test Accuracy} & \textbf{Mean Step Time} ($\mu$s) \\\cline{1-3}
+Fully-Connected NN            & 63.40\%         & 13\\
+Convolutional NN              & 72.89\%         & 54\\  
+Fourier NN                    & 63.27\%         & 143\\
+Wavelet NN                    & 74.85\%         & 228\\
+Random Forest                 & 80.28\%         & N/A\\ 
+Support Vector Classifier     & 65.77\%         & N/A       
 \end{tabular}
 \end{table}
 
-In this case, all of our models achieve accuracy over 97\% which is broadly considered to be the benchmark accuracy for MNIST. 
-For all these combinations of architecture and transformation, the difference between our maximum accuracy score of 99.11\% and our minimum accuracy of 97.73\% is only 1.38\%.
-Comparing the convolutional models in particular, the difference between the Raw, Fourier-transformed, and Wavelet-transformed data is only 0.01\%. 
+Again, the random forest outperforms all of our other classifiers.
+It is worth noting that one of the primary motivations for replacing the sliding-tile convolution method with a Fourier or Wavelet method is the performance.
+However, as we observe, the Fourier and Wavelet networks are significantly slower than their untransformed counterparts.
+We conclude that the computational overhead of performing a transform and its corresponding inverse transform outweighs the speed-up gained by eliminating the sliding-tile convolution on smaller datasets, and the method as demonstrated in Pratt~\cite{pratt2017fcnn} should be reserved for relatively large images, where convolution is extremely slow.
+In our case, we see a 2.65x increase in step time between a standard convolution and the Fourier method. 
+Unfortunately, our activation functions do not behave nicely in the Fourier or Wavelet domain, as they operate linearly with respect to the space. 
+The question of using a novel convolution operator and conducting the activation in that space has been addressed by Chakraborty~\cite{chakraborty2019surreal} but goes well beyond the question of simply adapting an activation function to the Fourier or Wavelet space.
+The search for a "spectral activation" function is still an open question.

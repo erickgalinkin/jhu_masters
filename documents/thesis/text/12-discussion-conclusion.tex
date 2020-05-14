@@ -1,12 +1,27 @@
 \chapter{Conclusions and Further Work}
 \label{chap:conclusion}
 
-\section{Malware data experiments}
-Across both experiments, no neural network was able to match the performance of the 
+\section{Malware Data Experiments}
+Across both experiments, no neural network was able to match the performance of the random forest.
+Random forests tend to be performant and the relationships in the data are not complex, so it is plausible that a decision tree-based model could be architecturally optimal for our problem. 
+Our summary statistic dataset is the dataset which provided the most interpretability to the data from a human standpoint, and per model, provided the worst results. 
+Since no optimization was done on the hyperparameters of the decision tree, it is likely that a decision tree trained on raw data could achieve much higher accuracy results than were achieved in \ref{chap:three}. 
+Some opportunity exists to enhance neural network-based detection, but this would likely require significantly larger volumes of data and more homogeneity between samples.
+Further work could also be done to do manual feature extraction or additional correlation of metadata to improve detection rates.
 
 
 \section{What a Neural Network Learns}
-The preceding sections suggest that the representation learned by the neural network, $\hat{X}$ constitutes a minimum sufficient statistic of $X$. 
-Moreover, that the mutual information satisfied the data processing inequality with respect to the Markov chain $Y \to X \to \hat{X}$: $I(Y; X) \geq I(Y; \hat{X})$.
+The preceding sections suggest that the representation learned by the neural network, $Z$ constitutes a minimum sufficient statistic of $X$. 
+Moreover, that the mutual information satisfied the data processing inequality with respect to the Markov chain $Y \to X \to Z$: $I(Y; X) \geq I(Y; Z)$.
 Additionally, the invariance of mutual information under homeomorphism suggests that any smooth, uniquely invertible map on $X$ does not impact the learned representation and that instead only methods of feature extraction~\cite{goodfellow2016deep} which change the data in ways that meaningfully change the entropy of $X$ are useful.
-This reinforces the idea~\cite{goodfellow2014explaining} that probability mass is concentrated in locally-connected regions approximated by small manifolds with significantly lower dimensionality than $X$ itself.
+This also reinforces the idea~\cite{goodfellow2014explaining} that probability mass is concentrated in locally-connected regions approximated by small manifolds with significantly lower dimensionality than $X$ itself.
+
+Our results in all three experiments, but most notably in \ref{chap:five}, where we can see very clearly that from the perspective of a network creating a comparable representation across datasets which is accurate invariant with respect to homeomorphism.
+In particular, this strengthens topological interpretations of neural network learning.
+We conclude that due to the equivalence class between the information manifolds and invariance of mutual information under homeomorphism, any homeomorphic transformation does not affect the accuracy or learning dynamics of neural networks.
+Further, this strengthens the idea of leveraging the convolution theorem to reduce computational load on large datasets since if the process of transforming and inverting the transform of the data is sufficiently fast, we improve the speed of computation with no loss of information.
+
+Further work on the dynamics of learning the data manifold could include exploration of optimization methods which leverage knowledge about the manifold.
+Additionally, further work on using natural gradient learning in lieu of backpropagaion would build upon our techniques and the approach is in its infancy.
+Finally, there may be applications of learning on manifolds in the space of adversarial examples~\cite{szegedy2013intriguing} which could allow us to minimize the dimension of the manifold and the order of the coordinate system to reduce the efficacy of gradient-based attacks.
+Additionally, since we seek to minimize the information in our learned representation, model inversion attacks~\cite{zhang2019secret} become more challenging.

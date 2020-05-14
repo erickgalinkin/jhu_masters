@@ -1,99 +1,69 @@
-\chapter{Experiment 1 - Malware Dataset Transformation}
-\label{chap:three}
+\chapter{Experiment 1 - Dataset and in-Network Transformation of MNIST}
+\label{chap:five}
 
-% Introduction
-Since the applications of neural networks are so varied, and have had success in the security domain~\cite{raff2018malware}, we have attempted to apply neural networks to the Watkins~\cite{watkins2013using} dataset.
-Briefly, this dataset consists of interarrival times for packets sent to Android devices, some of which were running malware.
-The interarrival time for each running piece of software was collected for each of 100 ICMP ping packets, 5 times for each piece of software.
+\section{Motivation}
+In order to contextualize the results of the experiments we wish to conduct on malware data, we consider the methods presented there on the well-studied MNIST Database of Handwritten Digits~\cite{lecun1998mnist}.
+MNIST is a benchmark in computer vision - since our baseline convolutional neural network is based on LeNet~\cite{lecun1998gradient}, we have a large body of research to compare to.
+Additionally, MNIST serves as an introduction to the field of computer vision for many students and so our architectures and theories can be made more accessible in that context.
+The current state of the art for MNIST~\cite{byerly2020branching}, achieved in January of this year achieves a 99.84\% accuracy.
+The best results achieved in the original LeCun paper was 99.3\% accuracy and generally an accuracy greater than 98\% is considered to be good.
 
-\section{Data}
-For our purposes, we leveraged four different datasets. 
-Summary statistics for the malware datasets are in Table~\ref{Tab:summary}. 
+\section{Methodology}
+In order to maintain consistency with our other findings, our methodology is identical to experiments in \ref{chap:three} and \ref{chap:four}, leveraging the same hardware as in \ref{append:one} and the same model details as in \ref{append:two}.
+In this case, our dataset differs from our previous two experiments by virtue of being a ``true'' image dataset. 
+As a result, some preprocessing work was required to reshape our 32 x 32 images into a flat vector, this is done without loss of information.
 
-\subsection{Raw data}
-This is the data as described above, captured by Yu and Li~\cite{Yu2018Network} in accordance with Watkins~\cite{watkins2013using}.
-In this dataset, only the raw measurements are used in a 100-dimensional row vector, with a label of 0 for benign and 1 for malicious.
+\section{models}
+All code\footnote{Code is available at the following url: \url{https://github.com/erickgalinkin/jhu_masters}} was written in Python, using the Tensorflow 2, PyTorch, and Scikit-learn libraries.
+Only the baseline models described in \ref{other models} used the Scikit-learn library, and only the Wavelet Convolutional network described in \ref{wavelet cnn} used PyTorch.
+The remaining models all used the Tensorflow framework.
 
-\subsection{Summary data}
-The summary data leverages the seven features used by Yu and Li: arithmetic mean, standard deviation, variance, maximum, minimum, geometric mean, and harmonic mean. 
-These features were fed to the classifier based on the sample they were captured from as a 7-dimensional row vector.
+\subsection{Fully-Connected Neural Network}
+The fully-connected neural network architecture accepts, as input, a 1x100 row-vector.
+This vector is then fed to three densely connected layers, each with 256 ReLU-activated neurons.
+The output neuron is a single sigmoid-activated neuron, which provides a probability of traffic being benign.
 
-\subsection{Fourier data}
-This dataset is a copy of the raw data under the Fourier transform.
-In particular, since our raw data is given by a single 100-dimensional row vector, it is a direct mapping of that row vector under the Fast Fourier Transform as provided by the numpy library.
+\subsection{Standard Convolutional Neural Network}
+Our standard convolutional neural network is a sequential model which accepts the same sort of input as our fully-connected neural network, and passes it to an architecture comprised of two convolution and max-pooling blocks, followed by batch normalization, and then passed to two densely connected layers of 128 neurons each. The architecture is visualized below in figure \ref{fig:conv net}.
 
-\subsection{Wavelet data}
-The wavelet dataset is a copy of the raw data under a continuous wavelet transform. 
-The Morlet wavelet is used for the transform for several reasons:
-First, it is a wavelet which allows us to maintain the dimensionality of our data, making it easier to compare in performance and to re-use neural network architectures.
-Secondly, the Morlet wavelet is closely related to human perception~\cite{mallat1999wavelet, daugman1985uncertainty}, providing a small connection to the human brain conception of neural networks.
-Lastly, the Morlet wavelet is uniquely invertible, which is not the case for all potential mother wavelets. 
-Since both detail and approximation coefficients are produced by the wavelet transform, but the detail coefficient-only results were identical to the results where both were used in all trials, the two-channel data was used.
-This likely relates to the volume of high-frequency parameters in the parameter space~\cite{rahaman2018spectral} and the vanishing gradients experienced by the low-pass approximation coefficient values close to zero.
-Further investigation of the density of information in different bands of the signal has been considered by de Oliveira \textit{et al.}~\cite{de2006wavelet} but is outside the scope of this document.
-
-One interesting effect of performing the transforms on the dataset is that while the continuous wavelet transform reduces our variance significantly and slightly normalizes the dataset, the Fourier transform has the opposite effect, introducing tremendous amounts of noise into the dataset.
-Given our results in \ref{invariance}, we would expect this not to have a meaningful impact on the accuracy, though increased variance is likely to have an impact on time to convergence.
-
-\renewcommand{\thefootnote}{*} 
-\begin{table}[h]
-\caption{Dataset Summary Statistics}
+\begin{figure}[ht]
+\caption{Convolutional Neural Network Architecture}
+\label{fig:conv net}
+\includegraphics[width=\textwidth]{conv_architecture}
 \centering
-\label{Tab:summary}	
-\begin{tabular}{l|llll}
-\textbf{Dataset Name} & \textbf{Mean} & \textbf{Median} & \textbf{Mean Var.} & \textbf{Median Var.} \\\cline{1-5}
-Raw         & 27.43    & 10.07    & 8329.96    & 7663.89 \\
-Fourier       & 58.60\footnotemark    & -1.45    & 12229005.34    & 7418186.12 \\
-Wavelet        & 1.30    & -.072    & 1887.5    & 1507.16 \\             
-\end{tabular}
-\end{table}
-\footnotetext{There is an extremely small, but non-zero imaginary part, on the order of $10^{-19}i$}
+\end{figure}
 
-\renewcommand{\thefootnote}{1}
-It is worth noting that the small but non-zero imaginary part in the Fourier data required implementation of methods from Trabelsi \textit{et al.}~\cite{trabelsi2017deep} to achieve acceptable results.
+\subsection{Other Models} \label{other models}
+Two baseline models were considered.
+The first is the random forest model provided in the Scikit-learn library with no hyperparameter tuning.
+Decision tree models are generally good at classification tasks~\cite{hastie01statisticallearning} but are weak classifiers which are sensitive to variance.
+Random forests are a the result of averaging a large collection of de-correlated trees and provide a good benchmark as a na\"ive model - in the respect that it is untuned - for classification.
 
-\section{Models}
-For each of the aforementioned datasets, with the exception of the Summary Statistic dataset, we leveraged each of the following models:
-\begin{itemize}
-\item Fully Connected Neural Network
-\item Convolutional Neural Network
-\item Random Forest
-\item Support Vector Classifier	
-\end{itemize}
+The other benchmark model is a Support Vector Classifier, again provided by the Scikit-learn library.
+The rationale for using a Support Vector Machine is that we wanted to see if some hyperplane could be learned which would separate the data.
+This model was again, na\"ive in the respect that it was merely the ``out of the box'' model, and so the classifier was built on top of the radial basis function kernel.
 
-The summary statistic dataset was not used with the convolutional neural network because there is no spatial relationship between the data.
-Details of the model architectures are provided in \ref{append:two}.
+\section{Results}
 
-\section{Methodology and Results}
-Hardware specifications on which these models ran is in \ref{append:one}.
-In order to ensure that deviations in the dataset did not induce significant variation in accuracy, this experiment was run 100 times, and the accuracy and mean step time for all trials was averaged.
-
-\begin{table}[ht]
-\caption{Android App Data Test Results}
+\begin{table}[h]
+\caption{Neural Network Results}
 \centering
 \label{Tab:test}	
-\begin{tabular}{lll}
-Data and Architecture Combination & Test Accuracy & mean step time ($\mu$s) \\
-Raw, Fully-Connected NN            & 63.40\%         & 13\\
-Raw, Convolutional NN              & 72.89\%         & 54\\
-Raw, Random Forest                 & 80.28\%         & N/A\\ 
-Raw, Support Vector Classifier     & 65.77\%         & N/A\\    
-Summary, Fully-Connected NN        & 55.14\%         & 13\\
-Summary, Random Forest             & 76.91\%         & N/A\\
-Summary, Support Vector Classifier & 55.28\%         & N/A\\  
-Fourier, Fully-Connected NN        & 59.88\%         & 12\\
-Fourier, Convolutional NN          & 70.81\%         & 56\\
-Fourier, Random Forest             & 79.63\%         & N/A\\
-Fourier, Support Vector Classifier & 55.28\%         & N/A\\  
-Wavelet, Fully-Connected NN        & 61.95\%         & 12\\
-Wavelet, Convolutional NN          & 70.77\%         & 52\\
-Wavelet, Random Forest             & 79.80\%         & N/A\\
-Wavelet, Support Vector Classifier & 55.28\%         & N/A           
+\begin{tabular}{l|ll}
+\textbf{Data and Architecture}  & \textbf{Test Accuracy} & \textbf{Mean Step Time} ($\mu$s) \\\cline{1-3}
+Raw, Fully-Connected NN            & 97.73\%         & 29\\
+Fourier, Fully-Connected NN        & 98.12\%         & 41\\
+Wavelet, Fully-Connected NN        & 97.83\%         & 30\\
+\hline
+Raw, Convolutional NN              & 99.11\%         & 204\\ 
+Fourier, Convolutional NN          & 99.10\%         & 237\\
+Wavelet, Convolutional NN          & 99.10\%         & 212\\
+\hline
+Raw, Fourier NN                    & 98.45\%         & 959\\
+Raw, Wavelet NN                    & 98.89\%         & 1068\\ 
 \end{tabular}
 \end{table}
 
-In terms of pure accuracy, we find that the random forest on the raw data gives us the best accuracy, followed closely by the random forest on the wavelet-transformed data, and third the random forest trained on the Fourier-transformed data. 
-Notably, when we compare accuracy by model, we find that for the fully-connected neural network, our maximum average accuracy is 63.40\%, while our minimum average accuracy is given by the summary statistics.
-Excluding the summary statistic data, the difference between the highest average accuracy and lowest average accuracy for fully-connected neural networks is 3.52\%, a very small margin. 
-Comparatively, for the convolutional neural network, our delta is 2.12\%, again - quite small. 
-Similarly, the random forest performs near the 80\% mark universally, irrespective of representation, and performs worst on the summary statistic dataset. 
+In this case, all of our models achieve accuracy over 97\% which is broadly considered to be the benchmark accuracy for MNIST. 
+For all these combinations of architecture and transformation, the difference between our maximum accuracy score of 99.11\% and our minimum accuracy of 97.73\% is only 1.38\%.
+Comparing the convolutional models in particular, the difference between the Raw, Fourier-transformed, and Wavelet-transformed data is only 0.01\%. 

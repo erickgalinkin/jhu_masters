@@ -1,7 +1,14 @@
-\chap{Abstract}
+\chapter*{Abstract}
 %
-% REPLACE THIS WITH ABSTRACT TEXT
-\lipsum[1-4]
+The attention that deep learning has garnered from the academic community and industry continues to grow year over year, and it has been said that we are in a new golden age of artificial intelligence research.
+However, neural networks are still often seen as a ``black box'' where learning occurs but cannot be understood in a formal way.
+Using information geometry, we explore how homeomorphism affects the manifold on which learning occurs and the invariance of the mutual information captured by the coordinate system on that manifold under homeomorphism.
+We empirically validate these results, using accuracy as a measure of similarity of learned representations.
+
+Our results suggest that although the details of learned representations and the specific coordinate system defined over the manifold of all parameters differ slightly, the functional approximations are the same.
+Furthermore, our results show that since mutual information remains invariant under homeomorphism, only feature engineering methods which alter the entropy of the dataset will change the outcome of the neural network.
+Additionally, we show that for some datasets and tasks, neural networks require meaningful, human-driven feature engineering or changes in architecture to provide enough information for the neural network to generate a sufficient statistic.
+Applying our results can serve to guide analysis methods for machine learning engineers and suggests that neural networks which can exploit the convolution theorem are equally accurate as standard convolutional neural networks, and can be more computationally efficient.
 %
 % Add Thesis Readers
 \section*{Thesis Readers}
@@ -16,11 +23,4 @@
 \indent \indent Program Chair\\
 \indent \indent Department of Computer Science and Cybersecurity\\
 \indent \indent Johns Hopkins University\\
-%
-%\noindent First Lastname \\
-%\indent \indent Associate Professor\\
-%\indent \indent Affiliation1, and\\
-%\indent \indent Department1 \& Department2 at\\
-%\indent \indent Johns Hopkins Bloomberg School of Public Health \\
-%
 \end{singlespace}
