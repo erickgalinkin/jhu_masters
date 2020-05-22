@@ -62,7 +62,6 @@ class WaveletLayer(nn.Module):
         try:
             z = torch.from_numpy(pywt.idwt(cA, output, 'db2')).float()
         except RuntimeError as e:  # We get runtime errors when output is a zero vector.
-            print("Blah")
             z = x.float()
         a = z.view(shape)
         out = F.leaky_relu(a)
