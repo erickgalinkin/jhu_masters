@@ -1,4 +1,4 @@
-\chapter{Preliminaries}
+\chapter{Information Theory Preliminaries}
 \label{chap:two}
 %\newpage
 
@@ -53,7 +53,7 @@ I(X'; Y) & = \int \int f(x', y) \log \frac{f(x', y)}{f_{X'}(x') f_{Y}(y)} dy dx'
 Naftali Tishby and Noga Zaslavsky introduced the information bottleneck theory of neural networks~\cite{tishby2015deep} as a way of explaining the theoretical generalization bounds of neural networks.
 In particular, Tishby and Zaslavsky show that any deep neural network can be quantified by the mutual information between the input, hidden layers, and the output variable by way of information per the data processing inequality.
 Neural networks satisfy the information bottleneck optimality equation
-$$\min_{p(z|x):Y \to X \to Z} I(Z;X) - \beta I(Z; Y) , \beta > 0$$
+$$\min_{p(z|x):Y \to X \to Z} |I(Z;X) - \beta I(Z; Y)| , \quad\beta > 0$$
 The information bottleneck learns the representation $Z$ subject to the above constraint, where $\beta$ controls the strength of the constraint.
 The standard cross-entropy loss is recovered as $\beta \to \infty$. 
 Further work by Alemi \textit{et al.}~\cite{alemi2016deep} suggests further refinements on the information bottleneck theory which we do not discuss in detail here. 
@@ -74,22 +74,39 @@ We achieve equality if and only if $X \to Y$ is a deterministic map.
 A neural network, as mentioned briefly in chapter \ref{intro:nn}, is a form of connectionist machine learning which is a universal approximator under minor assumptions about the activation function~\cite{goodfellow2016deep}.
 In particular, a neural network connects many artificial neurons which receive input $x$ and emit output a prediction of $y$. 
 The forward pass of a single neuron gives us:
-$$y = \sigma(w \cdot x + \beta)$$
+$$\hat{y} = \sigma(w \cdot x + \beta)$$
 Where $\sigma$ is an activation function meeting the aforementioned assumptions, and $\beta$ is a bias vector which can be set to zero and not learned.
 For simplicity's sake, $\beta$ is omitted and assumed to be zero from this point without loss of generality.
 Then a two-layer neural network can be completely specified by layer weights:
 $$\xi = (w_1, ..., w_m; v_1, ..., v_m)$$
 and our simplified neural network output is given by:
-$$y = f(x, \xi) = v\sigma(w \cdot x)$$
+$$\hat{y} = f(x, \xi) = v\sigma(w \cdot x)$$
+During training, our loss surface $\mathcal{L}$ is a manifold given by the cross-entropy loss, which is equivalent to the KL divergence, $D(\hat{y}||y)$ up to an additive constant~\cite{goodfellow2016deep}.
 
-Letting $M$ be the parameter space of all neural networks allows us to specify $\xi$ as a coordinate system over $M$, which is a manifold of dimension $N=(n+1)m$, where $n$ is the dimension of the input, and $m$ is the number of neurons in the hidden layer.
-This manifold is where learning occurs, with $\xi$ . 
-% Since this manifold contains sets of points $\xi \neq \xi'$ for which $f(x, \xi) = f(x, \xi')$, then we cannot uniquely identify $\xi$ from the output. 
-% This means we have some $\xi$ for which $f(x, \xi) = 0$ and so either $v$ or $w$ is the zero vector.
-% Given this definition, we specify the critical region $R$ of $M$:
-% $$R = \{\xi | v = 0 \text{ or } w = 0\}$$
+Letting $\mathcal{W}$ be the parameter space of all neural networks allows us to specify $\xi$ as a coordinate system over $\mathcal{W}$, which is a manifold of dimension $N=(n+1)m$, where $n$ is the dimension of the input, and $m$ is the number of neurons in the hidden layer.
+This manifold is where learning occurs, with $\xi$ optimized by the results of minimizing $D(\hat{y}||y)$. 
+Since this manifold contains sets of points $\xi \neq \xi'$ for which $f(x, \xi) = f(x, \xi')$, then we cannot uniquely identify $\xi$ from the output. 
+This means we have some $\xi$ for which $f(x, \xi) = 0$ and so either $v$ or $w$ is the zero vector.
+Given this definition, we specify the singular region $R$ of $\mathcal{W}$:
+$$R = \{\xi | v = 0 \text{ or } w = 0\}$$
+Although our parameter space $\mathcal{W}$ contains a singularity, the loss surface is nonsingular.
+We make no use of this singularity and include it only for completeness, as it does not complicate our results.
 
-Given the above results, it seems prudent to consider that by definition of homeomorphism, any smooth, bijective map applied to our dataset will only deform the manifold which is parameterized by $\xi$. 
-Since we optimize $\xi$ with respect to $I(X; Z)$, it stands to reason that as we approach the MNI point and our loss function approaches zero and our estimator $\xi$ approaches the Cram\'{e}r-Rao bound.`
-Additionally, we conclude that since both $M$ and mutual information are invariant to homeomorphism, then the results of training via stochastic gradient descent are also unaffected by homeomorphic transformation.
+The relationship between these two manifolds is as follows: as we descend the loss surface $\mathcal{L}$, we update the parameters of our neural network $\xi$ which serve as a coordinate system over $\mathcal{W}$. 
+Given $\mathcal{L}$ is the manifold of the KL divergence parameterized by $\hat{y}$, $y$, then the loss surface is determined uniquely by $x$ and $y$, with our location on that surface determined by $\xi$.
+Similarly, our coordinate system over the space of all neural networks is given by $\xi$ on $\mathcal{W}$, so $\mathcal{W}$ and $\mathcal{L}$ are homotopic.
+Then given a data set $X' = f(X)$ where $f: X \to X'$ is a homeomorphism, our loss surface $\mathcal{L}$ is now parameterized by $\hat{y'} = f(x', \xi)$, $y$, which we call $\mathcal{L'}$.
+$\mathcal{L} \sim \mathcal{L'}$ by homeomorphism and $\mathcal{L}$ is homotopic to $\mathcal{W}$ then $\mathcal{L'}$ is also homotopic to $\mathcal{W}$~\cite{hamstrom1974homotopy}.
+
+Since we optimize $\xi$ with respect to $D(\hat{y}||{y})$, as we approach the MNI point, our loss function approaches zero and our estimator $\xi$ approaches the Cram\'{e}r-Rao bound.
+This suggests that not only is the ability of a network to learn a representation which is predictive of $y$ invariant to homeomorphism on the input data manifold, but also that the information bottleneck optimality is satisfied when $\xi$ is found which minimizes $D(\hat{y}||y)$.
+We return to our inequality of minimum necessary information, swapping $Z$ in the generic version above for $\hat{y}$ and find that as we approach the global optimum of the loss surface, we are minimizing $D(\hat{y}||y)$, which allows us to show:
+\begin{align*}
+\min D(\hat{y}||y) & = \min \sup_{\hat{Y} \leftarrow X \rightarrow Y}\frac{I(Y; \hat{Y})}{I(X; \hat{Y})} \\
+& = \min \sup_{f(X, \xi) \leftarrow X \rightarrow Y} \frac{I(Y; f(X, \xi))}{I(X; f(X, \xi))} \\
+& = \min \sup_{f_X(\xi) \leftarrow X \rightarrow Y} \frac{I(Y; f_X(\xi))}{I(X; f_X(\xi))} \\
+\end{align*}
+where $f_X(\xi)$ is the neural network with input $X$ and given parameters $\xi$.
+So our learning process is minimizing the mutual information between $Y$ and $\xi$, while maximizing the mutual information between $X$ and $\xi$.
+Thus we have demonstrated that since mutual information is invariant to homeomorphic maps on the input data; our loss surface is always homotopic to our network parameters; and therefore learning is invariant to any smooth, uniquely invertible map of the input data. 
 This theory is borne out and discussed in the context of our experiments in chapter \ref{chap:conclusion}

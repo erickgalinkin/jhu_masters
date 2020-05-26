@@ -41,7 +41,6 @@ Given our results in \ref{invariance}, we would expect this not to have a meanin
 
 \renewcommand{\thefootnote}{*} 
 \begin{table}[h]
-\caption{Dataset Summary Statistics}
 \centering
 \label{Tab:summary}	
 \begin{tabular}{l|llll}
@@ -50,6 +49,7 @@ Raw         & 27.43    & 10.07    & 8329.96    & 7663.89 \\
 Fourier       & 58.60\footnotemark    & -1.45    & 12229005.34    & 7418186.12 \\
 Wavelet        & 1.30    & -.072    & 1887.5    & 1507.16 \\             
 \end{tabular}
+\caption{Dataset Summary Statistics}
 \end{table}
 \footnotetext{There is an extremely small, but non-zero imaginary part, on the order of $10^{-19}i$}
 
@@ -65,7 +65,25 @@ For each of the aforementioned datasets, with the exception of the Summary Stati
 \item Support Vector Classifier	
 \end{itemize}
 
+\subsection{Baseline Models} \label{other models}
+Two baseline models were considered.
+The first is the random forest model provided in the Scikit-learn library with no hyperparameter tuning.
+Decision tree models are generally good at classification tasks~\cite{hastie01statisticallearning} but are weak classifiers which are sensitive to variance.
+Random forests are a the result of averaging a large collection of de-correlated trees and provide a good benchmark as a na\"ive model - in the respect that it is untuned - for classification.
+
+The other benchmark model is a Support Vector Classifier, again provided by the Scikit-learn library.
+The rationale for using a Support Vector Machine is that we wanted to see if some hyperplane could be learned which would separate the data.
+This model was again, na\"ive in the respect that it was merely the ``out of the box'' model, and so the classifier was built on top of the radial basis function kernel.
+
 The summary statistic dataset was not used with the convolutional neural network because there is no spatial relationship between the data.
+The architecture of the convolutional neural network is visualized below in figure \ref{fig:conv net}.
+
+\begin{figure}[ht]
+\includegraphics[width=\textwidth]{conv_architecture}
+\centering
+\caption{Convolutional Neural Network Architecture}
+\label{fig:conv net}
+\end{figure}
 
 
 \section{Methodology and Results}
@@ -73,7 +91,6 @@ Hardware specifications on which these models ran is in \ref{append:one}.
 In order to ensure that deviations in the dataset did not induce significant variation in accuracy, this experiment was run 100 times, and the accuracy and mean step time for all trials was averaged.
 
 \begin{table}[h]
-\caption{Android App Data Test Results}
 \centering
 \label{Tab:test}	
 \begin{tabular}{l|ll}
@@ -97,6 +114,7 @@ Summary, Support Vector Classifier & 55.28\%         & N/A\\
 Fourier, Support Vector Classifier & 55.28\%         & N/A\\  
 Wavelet, Support Vector Classifier & 55.28\%         & N/A           
 \end{tabular}
+\caption{Android App Data Test Results}
 \end{table}
 
 In terms of pure accuracy, we find that the random forest on the raw data gives us the best accuracy, followed closely by the random forest on the wavelet-transformed data, and third the random forest trained on the Fourier-transformed data. 
