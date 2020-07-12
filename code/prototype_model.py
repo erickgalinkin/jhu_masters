@@ -95,9 +95,9 @@ def build_conv_model(input_shape=(100, )):
     model.add(layers.Input(input_shape))
     model.add(layers.Reshape((100, 1)))
     model.add(layers.Conv1D(256, input_shape=(None, 100), kernel_size=5, strides=1, activation='relu'))
-    model.add(layers.MaxPooling1D(pool_size=2, strides=2, padding='valid'))
+    # model.add(layers.MaxPooling1D(pool_size=2, strides=2, padding='valid'))
     model.add(layers.Conv1D(256, input_shape=(None, 100), kernel_size=3, strides=2, activation='relu'))
-    model.add(layers.MaxPooling1D(pool_size=2, strides=None, padding='valid'))
+    # model.add(layers.MaxPooling1D(pool_size=2, strides=None, padding='valid'))
     model.add(layers.BatchNormalization())
     model.add(layers.Flatten())
     model.add(layers.Dense(128, activation='relu'))
@@ -161,7 +161,7 @@ def plot_results(tst, cur_dir, model_name):
 
     # Save indexes of tests data for each of the output classes
     saved_labelixs = {}
-    for i in range(10):
+    for i in range(150):
         saved_labelixs[i] = tst.y == i
 
     labelprobs = np.mean(tst.Y, axis=0)
@@ -269,7 +269,7 @@ def plot_results(tst, cur_dir, model_name):
 
 
 def train_model(model, data, model_name, iteration, train_epoch=cfg["EPOCHS"]):
-    stopping = EarlyStopping(monitor='loss', patience=2)
+    # stopping = EarlyStopping(monitor='loss', patience=2)
     train, test = fix_data(data)
     cfg["SAVE_DIR"] = cfg["BASE_DIR"] + model_name + "/iteration_" + iteration
     reporter = LoggingReporter(cfg=cfg, trn=train, tst=test, do_save_func=do_report)
@@ -278,7 +278,7 @@ def train_model(model, data, model_name, iteration, train_epoch=cfg["EPOCHS"]):
 
     results = model.evaluate(x=test.X, y=test.Y, verbose=0)
 
-    plot_results(test, cfg["SAVE_DIR"], model_name)
+    # plot_results(test, cfg["SAVE_DIR"], model_name)
 
     return history, results
 
@@ -361,18 +361,20 @@ if __name__ == "__main__":
     request_reply_wavelet = create_continuous_wavelet_dataset(request_reply_df)
     request_reply_summary = create_summary_dataset(request_reply_df)
 
-    print("Experiment 1 running 100 times.")
+    num_experiments = 100
+
+    print("Experiment 1 running {} times.".format(num_experiments))
     # Raw data
     # Fully Connected Neural Network
     score = list()
-    for i in range(100):
+    for i in range(num_experiments):
         model = build_fc_model()
         fc_history, fc_results = train_model(model, request_reply_df, "Fully-Connected", str(i))
         score.append(fc_results[1])
     print("Average accuracy of fully-connected model on raw data: {}".format(np.average(score)))
     # Convolutional Neural Network
     score = list()
-    for i in range(100):
+    for i in range(num_experiments):
         model = build_conv_model()
         conv_history, conv_results = train_model(model, request_reply_df, "Convolutional", str(i))
         score.append(conv_results[1])
@@ -381,7 +383,7 @@ if __name__ == "__main__":
     labels = dataset.pop("Malicious")
     X_train, X_test, y_train, y_test = train_test_split(dataset, labels, test_size=.2, stratify=labels)
     score = list()
-    for _ in range(100):
+    for _ in range(num_experiments):
         clf = SVC()
         clf.fit(X_train, y_train)
         predictions = clf.predict(X_test)
@@ -390,7 +392,7 @@ if __name__ == "__main__":
         score.append(svm_accuracy)
     print("Average accuracy of SVC on raw data: {}".format(np.average(score)))
     score = list()
-    for _ in range(100):
+    for _ in range(num_experiments):
         clf = RandomForestClassifier(n_estimators=100)
         clf.fit(X_train, y_train)
         predictions = clf.predict(X_test)
@@ -402,14 +404,14 @@ if __name__ == "__main__":
     # Fourier data
     # Fully Connected Neural Network
     score = list()
-    for i in range(100):
+    for i in range(num_experiments):
         model = build_fc_model()
         fc_history, fc_results = train_model(model, request_reply_fourier, "Fully-Connected_Fourier", str(i))
         score.append(1 - fc_results[1])
     print("Average accuracy of fully-connected model on Fourier data: {}".format(np.average(score)))
     # Convolutional Neural Network
     score = list()
-    for i in range(100):
+    for i in range(num_experiments):
         model = build_conv_model()
         conv_history, conv_results = train_model(model, request_reply_fourier, "Convolutional_Fourier", str(i))
         score.append(1 - conv_results[1])
@@ -418,7 +420,7 @@ if __name__ == "__main__":
     labels = dataset.pop("Malicious")
     X_train, X_test, y_train, y_test = train_test_split(dataset, labels, test_size=.2, stratify=labels)
     score = list()
-    for _ in range(100):
+    for _ in range(num_experiments):
         clf = SVC()
         clf.fit(X_train.astype('float32'), y_train)
         predictions = clf.predict(X_test.astype('float32'))
@@ -427,7 +429,7 @@ if __name__ == "__main__":
         score.append(1 - svm_accuracy)
     print("Average accuracy of SVC on Fourier data: {}".format(np.average(score)))
     score = list()
-    for _ in range(100):
+    for _ in range(num_experiments):
         clf = RandomForestClassifier(n_estimators=100)
         clf.fit(X_train.astype('float32'), y_train)
         predictions = clf.predict(X_test.astype('float32'))
@@ -439,14 +441,14 @@ if __name__ == "__main__":
     # Wavelet data
     # Fully Connected Neural Network
     score = list()
-    for i in range(100):
+    for i in range(num_experiments):
         model = build_fc_model()
         fc_history, fc_results = train_model(model, request_reply_wavelet, "Fully-Connected_Wavelet", str(i))
         score.append(fc_results[1])
     print("Average accuracy of fully-connected model on Wavelet data: {}".format(np.average(score)))
     # Convolutional Neural Network
     score = list()
-    for i in range(100):
+    for i in range(num_experiments):
         model = build_conv_model()
         conv_history, conv_results = train_model(model, request_reply_wavelet, "Convolutional_Wavelet", str(i))
         score.append(conv_results[1])
@@ -455,7 +457,7 @@ if __name__ == "__main__":
     labels = dataset.pop("Malicious")
     X_train, X_test, y_train, y_test = train_test_split(dataset, labels, test_size=.2, stratify=labels)
     score = list()
-    for _ in range(100):
+    for _ in range(num_experiments):
         clf = SVC()
         clf.fit(X_train.astype('float32'), y_train)
         predictions = clf.predict(X_test.astype('float32'))
@@ -464,7 +466,7 @@ if __name__ == "__main__":
         score.append(svm_accuracy)
     print("Average accuracy of SVC on Wavelet data: {}".format(np.average(score)))
     score = list()
-    for _ in range(100):
+    for _ in range(num_experiments):
         clf = RandomForestClassifier(n_estimators=100)
         clf.fit(X_train.astype('float32'), y_train)
         predictions = clf.predict(X_test.astype('float32'))
@@ -476,7 +478,7 @@ if __name__ == "__main__":
     # Summary data
     # Fully Connected Neural Network
     score = list()
-    for i in range(100):
+    for i in range(num_experiments):
         model = build_fc_model(input_shape=(7, ))
         summary_history, summary_results = train_model(model, request_reply_summary, "Fully-Connected_Summary", str(i))
         score.append(summary_results[1])
@@ -485,7 +487,7 @@ if __name__ == "__main__":
     labels = dataset.pop("Malicious")
     X_train, X_test, y_train, y_test = train_test_split(dataset, labels, test_size=.2, stratify=labels)
     score = list()
-    for _ in range(100):
+    for _ in range(num_experiments):
         clf = SVC()
         clf.fit(X_train, y_train)
         predictions = clf.predict(X_test)
@@ -494,7 +496,7 @@ if __name__ == "__main__":
         score.append(svm_accuracy)
     print("Average accuracy of SVC on Summary data: {}".format(np.average(score)))
     score = list()
-    for _ in range(100):
+    for _ in range(num_experiments):
         clf = RandomForestClassifier(n_estimators=100)
         clf.fit(X_train, y_train)
         predictions = clf.predict(X_test)
@@ -511,7 +513,7 @@ if __name__ == "__main__":
     dataset = request_reply_df.copy()
     labels = dataset.pop("Malicious")
     X_train, X_test, y_train, y_test = train_test_split(dataset, labels, test_size=.2, stratify=labels)
-    for _ in range(100):
+    for _ in range(num_experiments):
         model = WaveletNN(100)
         opt = optim.SGD(model.parameters(), lr=0.005)
         bce = nn.BCELoss()
@@ -534,7 +536,7 @@ if __name__ == "__main__":
 
     # # Fourier Model
     score = list()
-    for i in range(100):
+    for i in range(num_experiments):
         model = fourier_model()
         fourier_model_history, fourier_model_results = train_model(model, request_reply_df, "Fourier_NN", str(i))
         score.append(fourier_model_results[1])
