@@ -1,27 +1,49 @@
 \chapter{Conclusions and Further Work}
 \label{chap:conclusion}
 
+\section{What a Neural Network Learns}
+In section~\ref{MNI_IB}, we show that that the representation learned by the neural network, $Z$ must constitute a minimum sufficient statistic of $X$ in order for the network to be predictive with respect to the information bottleneck optimality equation. 
+Moreover, we demonstrate that the mutual information satisfies the data processing inequality with respect to the Markov chain $Y \to X \to Z$: $I(Y; X) \geq I(Y; Z)$.
+Since the invariance of mutual information under homeomorphism allows us to affirm that any smooth, uniquely invertible map on $X$ does not impact the ability of a network to learn a representation, we have demonstrated that only methods of feature extraction~\cite{goodfellow2016deep} which change the data in ways that meaningfully change the entropy of $X$ are useful for altering the prediction accuracy of the network.
+We know from natural language processing that some types of feature extraction which are not invertible improve the accuracy of prediction~\cite{goodfellow2016deep} but given the results of our summary statistic data in Section~\ref{malware results} that not all feature extraction methods are equally valid.
+This also makes intuitive sense from the standpoint of the data processing inequality outlined in Section~\ref{MNI_IB}, Equation~\ref{eqn:DPI}.
+This strengthens the theory~\cite{goodfellow2014explaining} that probability mass is concentrated in locally-connected regions approximated by small manifolds with significantly lower dimensionality than $X$ itself, since these submanifolds would be preserved under this transformation.
+
+Based on the results of our experiments in Chapter~\ref{chap:three} and Chapter~\ref{chap:five}, we observe that transformation of the dataset under homeomorphism has very little impact on the information plane.
+Since the information plane is largely unchanged, and our accuracy remains quite similar, we conclude that a smooth, bijective map applied to a dataset does not impact the ability of a neural network to learn a representation.
+We used the convolution theorem to process smaller datasets than in Pratt~\cite{pratt2017fcnn} and Fujieda~\cite{fujieda2017wavelet} and found that if the process of transforming and inverting the transform in-network is sufficiently fast, we can improve the speed of convolution with no loss of information. 
+Further, this strengthens the idea of leveraging the convolution theorem to reduce computational load on large datasets since if the process of transforming and inverting the transform of the data is sufficiently fast, we improve the speed of computation with no loss of information.
+
 \section{Malware Data Experiments}
-Across both experiments, no neural network was able to match the performance of the random forest.
-Random forests tend to be performant and the relationships in the data are not complex, so it is plausible that a decision tree-based model could be architecturally optimal for our problem. 
-Our summary statistic dataset is the dataset which provided the most interpretability to the data from a human standpoint, and per model, provided the worst results. 
-Since no optimization was done on the hyperparameters of the decision tree, it is likely that a decision tree trained on raw data could achieve much higher accuracy results than were achieved in \ref{chap:three}. 
+Across both experiments, no neural network was able to match or surpass the accuracy of the random forest.
+Since each observation in our data is independent of the observation before it, the relationships are not complex and so it is plausible that a decision tree-based model could be architecturally optimal for our problem.
+Our summary statistic dataset provided the most interpretability to the data from a human standpoint, and per model, provided the worst results. 
+This result demonstrates that human interpretability does not necessarily enhance the ability of neural networks to learn, even in relatively low dimensional spaces.
+Since no optimization was done on the hyperparameters of the decision tree, it is likely that a decision tree trained on raw data could achieve much higher accuracy results than were achieved in Chapter~\ref{chap:three}. 
 Some opportunity exists to enhance neural network-based detection, but this would likely require significantly larger volumes of data and more homogeneity between samples.
 Further work could also be done to do manual feature extraction or additional correlation of metadata to improve detection rates.
 
+\section{Further Work}
+Our experiments contextualize results from experiments on the EMBER dataset performed by Anderson, Raff, and previous work done by the author of this paper~\cite{anderson2018ember, raff2018malware, galinkin2019shape}.
+Anderson found that features extracted by experts with some light preprocessing outperformed featureless end-to-end deep learning even in spite of the ``natural'' feature extraction found in convolutional neural networks~\cite{he2016deep}.
+Our previous work found that raw bytes are generally not a robust feature for malware detection, even if the support of the convolutional filter is considered and the filter shape is optimized for the target.
+Our results here suggest that there may be some relevant change to the entropy when the executable is parsed as in Anderson's work.
+This research serves as an avenue for future work.
 
-\section{What a Neural Network Learns}
-The preceding sections suggest that the representation learned by the neural network, $Z$ constitutes a minimum sufficient statistic of $X$. 
-Moreover, that the mutual information satisfied the data processing inequality with respect to the Markov chain $Y \to X \to Z$: $I(Y; X) \geq I(Y; Z)$.
-Additionally, the invariance of mutual information under homeomorphism suggests that any smooth, uniquely invertible map on $X$ does not impact the learned representation and that instead only methods of feature extraction~\cite{goodfellow2016deep} which change the data in ways that meaningfully change the entropy of $X$ are useful.
-This also reinforces the idea~\cite{goodfellow2014explaining} that probability mass is concentrated in locally-connected regions approximated by small manifolds with significantly lower dimensionality than $X$ itself.
+Further work on the dynamics of learning the data manifold could include exploration of optimization methods which leverage knowledge about the manifold or incorporate additional techniques from information geometry, such as the natural gradient method~\cite{amari1998natural, amari2006singularities}.
+Additionally, further work on using natural gradient learning in lieu of backpropogation could provide a more efficient and unbiased method for learning parameters.
+Our work provides a geometric framework on which this natural gradient method could build.
 
-Our results in all three experiments, but most notably in \ref{chap:five}, where we can see very clearly that from the perspective of a network creating a comparable representation across datasets which is accurate invariant with respect to homeomorphism.
-In particular, this strengthens topological interpretations of neural network learning.
-We conclude that due to the equivalence class between the information manifolds and invariance of mutual information under homeomorphism, any homeomorphic transformation does not affect the accuracy or learning dynamics of neural networks.
-Further, this strengthens the idea of leveraging the convolution theorem to reduce computational load on large datasets since if the process of transforming and inverting the transform of the data is sufficiently fast, we improve the speed of computation with no loss of information.
-
-Further work on the dynamics of learning the data manifold could include exploration of optimization methods which leverage knowledge about the manifold.
-Additionally, further work on using natural gradient learning in lieu of backpropagaion would build upon our techniques and the approach is in its infancy.
-Finally, there may be applications of learning on manifolds in the space of adversarial examples~\cite{szegedy2013intriguing} which could allow us to minimize the dimension of the manifold and the order of the coordinate system to reduce the efficacy of gradient-based attacks.
+There are also applications of learning on manifolds in the space of adversarial examples~\cite{szegedy2013intriguing} which could allow us to minimize the dimension of the manifold and the order of the coordinate system to reduce the efficacy of gradient-based attacks.
+This application has valuable contributions to the defense of machine learning systems, a threat which organizations are not prepared for~\cite{kumar2020adversarial}.
+By using the ideas of a projection onto a manifold, we can categorize networks and datasets which might prove susceptible to adversarial examples.
 Additionally, since we seek to minimize the information in our learned representation, model inversion attacks~\cite{zhang2019secret} become more challenging.
+
+Our neural network's poor accuracy and the success of the random forest classifier also provide a potential avenue for further study.
+If our random forest classifier learns rules which partition the dataset, rather than a function which maps inputs to labels, it may be architecturally optimal. 
+This would require a multi-dimensional analysis of the data and examining in-depth the branching points of the random forest classifier.
+Though this work is outside the scope of this thesis, it would provide an insight into when and why to choose certain machine learning models given properties of the dataset.
+
+Finally, when plotting the information plane, the parameter which seemed to have the greatest effect on the magnitude of the changes was the number of neurons, especially in the case of a feed-forward neural network.
+We observed that using very small numbers of neurons by modern neural network sizes: 4 to 16 neurons per layer, for example, we saw much lower initial levels of mutual information, which would still eventually converge to the same points. 
+We did not explore why this is the case, and reserve investigation of this phenomenon to future work.

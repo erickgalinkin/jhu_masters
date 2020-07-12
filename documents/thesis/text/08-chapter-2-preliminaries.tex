@@ -10,97 +10,152 @@ This is both because binary computers have only finite precision, and are thus n
 First, we define entropy as the measure of uncertainty of a single random variable.
 Let $X$ be a random variable with alphabet $\mathcal{X}$ and probability mass function $p(x) = \\Pr\{X = x\}, x \in \mathcal{X}$.
 Then the entropy of $X$, represented $H(X)$ is defined as
-$$H(X) = -\sum_{x \in \mathcal{X}} p(x) \log{p(x)}$$
+\begin{equation}\label{eqn: Entropy}
+H(X) = -\sum_{x \in \mathcal{X}} p(x) \log{p(x)}	
+\end{equation}
 Here our logarithm is to the base 2, as information is most commonly represented as bits.
 We maintain this definition of the logarithm throughout. 
 
 In the case where we are examining two random variables, for example, a dataset and its labels, we may want to consider the joint and conditional entropy of those random variables.
 The joint density of a pair of discrete random variables $(X, Y)$ with joint distribution $p(X, Y)$ is:
-$$H(X, Y) = - \sum_{x \in \mathcal{X}} \sum_{y \in \mathcal{Y}} p(x, y) \log{p(x, y)}$$
+\begin{equation}
+H(X, Y) = - \sum_{x \in \mathcal{X}} \sum_{y \in \mathcal{Y}} p(x, y) \log{p(x, y)}	
+\end{equation}
 
-and the differential entropy $H(Y | X)$ as:
-$$ h(Y|X) = -\sum_{x \in \mathcal{X}} \sum_{y \in \mathcal{Y}} p(x, y) \log{p(y|x)}$$
+\noindent and the differential entropy $H(Y | X)$ as:
+\begin{equation}\label{eqn: Differential Entropy}
+H(Y|X) = -\sum_{x \in \mathcal{X}} \sum_{y \in \mathcal{Y}} p(x, y) \log{p(y|x)}	
+\end{equation}
 
-We define the Kullback-Leibler divergence $D(f||g)$ between two probability mass functions $p(x)$ and $q(x)$ to be:
-$$D(f||g) = \sum_{x \in \mathcal{X}} p(x) \log{\frac{p(x)}{q(x)}}$$
 
-Therefore, we define mutual information, $I(X; Y)$ as the relative entropy between the joint distribution and the product distribution.
-$$I(X; Y) = \sum_{x, y} p(x, y) \log{\frac{p(x,y)}{p(x) p(y)}} = H(Y) - H(Y|X)$$
+We define the Kullback-Leibler divergence $D(p||q)$ between two probability mass functions $p(x)$ and $q(x)$ to be:
+\begin{equation}\label{eqn: KL Divergence}
+D(p||q) = \sum_{x \in \mathcal{X}} p(x) \log{\frac{p(x)}{q(x)}}	
+\end{equation}
 
-Detailed derivation of the above results are available in \cite{coverthomas2006}.
+Therefore, we define mutual information, $I(X; Y)$ as the relative entropy between the joint distribution and the product distribution:
+\begin{equation}\label{eqn: Mutual Info}
+	I(X; Y) = \sum_{x, y} p(x, y) \log{\frac{p(x,y)}{p(x) p(y)}} = H(Y) - H(Y|X)
+\end{equation}
+Mutual information is an important quantity for us, since it is a measure of dependence between two random variables. 
+Specifically, it provides a measure of information obtained about one random variable by the observation of another random variable.
+Therefore, if we can observe $X$ and want to predict $Y$, we would like for the mutual information between X and Y to be high. 
 
-\section{Invariance of Mutual Information in Neural Networks}\label{invariance}
+Lastly, we introduce the data processing inequality.
+Assume that three random variables $X, Y,$ and $Z$  form a Markov chain denoted $X \to Y \to Z$.
+Let $Z$ depend only on $Y$ and let $Z$ be conditionally independent of $X$. 
+Then the data processing inequality shows that no local manipulation of data can improve the inferences drawn from that data.
+By the chain rule, we can expand mutual information as follows:
+\begin{align}
+I(X; Y, Z) & = I(X; Z) + I(X; Y|Z) \\
+& = I(X; Y) + I(X; Z|Y)
+\end{align}
+Since $X$ and $Z$ are conditionally independent given $Y$, we have $I(X; Z|Y) = 0$. 
+Since $I(X; Y|Z) \geq 0$, we have:
+\begin{equation} \label{eqn:DPI}
+I(X; Y) \geq I(X; Z)	
+\end{equation}
+which is known as the data processing inequality. 
 
-We begin by proving the invariance of mutual information under homeomorphism.
+Detailed derivation of all above results are available in \cite{coverthomas2006}.
 
-\begin{theorem}[Invariance of Mutual Information under Homeomorphism]
+\section{Invariance of Mutual Information}\label{invariance}
+
+We begin by proving the invariance of mutual information under homeomorphism, based on a similar proof~\cite{kraskov2004estimating}.
+
+\begin{theorem}[Invariance of Mutual Information under Homeomorphism]\label{thm:MI invariance}
 Take two random variables $X$ and $Y$ where $Y$ is the set of labels of $X$.
-Let $X' = \psi(X)$, where $\psi$ is a smooth and uniquely invertible map.
-Then $I(X'; Y) = I(X; Y)$.
+Let $X' = \psi(X)$, where $\psi$ is a smooth and uniquely invertible map (a homeomorphism).
+Then since $X$ is a random variable, $X'$ is a random variable as long as $\psi$ is well-defined for the range of $X$.
+Thus, $I(X'; Y) = I(X; Y)$.
 \end{theorem}
-
 \begin{proof}
-Given the Jacobi determinant $J_X = ||\partial X/ \partial X'||$, we observe that the joint distribution of $X'$ and $Y$ is given by: $f_{X', Y}(x', y) = J_X(x')f(x, y)$
-
-\begin{align*}
-I(X'; Y) & = \int \int f(x', y) \log \frac{f(x', y)}{f_{X'}(x') f_{Y}(y)} dy dx'\\
-& = \int \int f(x, y) \log \frac{f(x, y)}{f_{X}(x) f_{Y}(y)} dy dx \\
+Given the Jacobi determinant $J_X = ||\partial X/ \partial X'|| = ||\partial X / \partial \psi(X)||$, we observe that the joint distribution of $X'$ and $Y$ is given by: $f_{X', Y}(x', y) = J_X(x')f(x, y)$
+\begin{align}
+I(X'; Y) & = \int \int dx' dy f(x', y) \log \frac{f(x',y)}{f_{x'}(x')f_{y}(y')} \\
+& = \int \int dx dy f(x, y) \log \frac{f(x, y)}{f_{x}(x)f_{y}(y)}\\
 & = I(X; Y)
-\end{align*}
+\end{align}
 \end{proof}
 
-\section{Minimum Necessary Information and Information Bottleneck}
+\section{Minimum Necessary Information and Information Bottleneck}\label{MNI_IB}
 Naftali Tishby and Noga Zaslavsky introduced the information bottleneck theory of neural networks~\cite{tishby2015deep} as a way of explaining the theoretical generalization bounds of neural networks.
-In particular, Tishby and Zaslavsky show that any deep neural network can be quantified by the mutual information between the input, hidden layers, and the output variable by way of information per the data processing inequality.
-Neural networks satisfy the information bottleneck optimality equation
-$$\min_{p(z|x):Y \to X \to Z} |I(Z;X) - \beta I(Z; Y)| , \quad\beta > 0$$
+In particular, Tishby and Zaslavsky show that any deep neural network can be quantified by the mutual information between the input, hidden layers, and the output variable by way of information per the data processing inequality, Equation~\ref{eqn:DPI}.
+Neural networks satisfy the information bottleneck optimality equation:
+\begin{equation}
+\min_{p(z|x):Y \to X \to Z} |I(Z;X) - \beta I(Z; Y)| , \quad\beta > 0	
+\end{equation}
+Where $Y$ are the true labels, $X$ is the observed data about $Y$, and $Z$ is the learned representation. 
 The information bottleneck learns the representation $Z$ subject to the above constraint, where $\beta$ controls the strength of the constraint.
 The standard cross-entropy loss is recovered as $\beta \to \infty$. 
-Further work by Alemi \textit{et al.}~\cite{alemi2016deep} suggests further refinements on the information bottleneck theory which we do not discuss in detail here. 
+We do not concern ourselves with the existence of the compression phase addressed by Saxe~\cite{saxe2019information} but instead observe that the information bottleneck optimality equation holds irrespective of whether fitting and compression happen in sequence or simultaneously.
+Additionally, the value of the information bottleneck to this work is in its implication that a neural network seeks to learn a representation, $Z$, which retains a maximal amount of information about $Y$ and a minmal amount of information about $X$.
+Further work by Alemi \textit{et al.}~\cite{alemi2016deep} suggests refinements on the information bottleneck theory which we do not discuss in detail here. 
 
 The Minimum Necessary Information as defined by Fischer~\cite{fischer2020conditional} consists of three components for a learned representation:
 \begin{enumerate}
 	\item \textbf{Information} We would like a representation $Z$ which captures useful information about a dataset $(X, Y)$.
-	\item \textbf{Necessity} The value of information to accomplish a task. In this case, predicting $Y$ given $X$ using our representation $Z$. That is, $I(X; Y \leq I(Y; Z)$
+	\item \textbf{Necessity} The value of information to accomplish a task. In this case, predicting $Y$ given $X$ using our representation $Z$. That is, $I(X; Y) \leq I(Y; Z)$
 	\item \textbf{Minimality} Given all representations that can solve the task, we prefer the one which retains the smallest amount of mutual information. That is, $I(X; Y) \geq I(X; Z)$.
 \end{enumerate}
-Using Fischer's definitions of necessity and minimality, we see that there is a point which he calls the ``MNI Point'':
-$$I(X; Y) = I(X; Z) = I(Y; Z)$$
+As mentioned in our discussion of Equation~\ref{eqn: Mutual Info}, the higher the mutual information between this representation $Z$ and our desired prediction $Y$, the better our predictions will be. 
+
+Using Fischer's definitions of necessity and minimality, we see that there is a point called the ``MNI Point'':
+\begin{equation}
+	I(X; Y) = I(X; Z) = I(Y; Z)
+\end{equation}
 This equation may not be satisfiable, since for any representation $Z$ given a dataset $(X, Y)$, there is a maximum value we are subject to:
-$$1 \geq D(X||Z) = \sup_{Z \leftarrow X \rightarrow Y}\frac{I(Y; Z)}{I(X; Z)}$$
-We achieve equality if and only if $X \to Y$ is a deterministic map.
+\begin{equation}\label{eqn:MNI}
+	1 \geq D(X||Z) = \sup_{Z \leftarrow X \rightarrow Y}\frac{I(Y; Z)}{I(X; Z)}
+\end{equation}
+Where $D(X||Z)$ is the KL divergence given in Equation~\ref{eqn: KL Divergence} and we achieve equality if and only if the Markov chain $X \to Y$ is deterministic.
+
+%Thus, in order for $Z$ to be predictive, we must maximize our accuracy, which we define as 
+%\begin{equation}
+%Acc = \frac{TP + TN}{TP + TN + FP + FN}	
+%\end{equation}
+%Where TP, TN, FP, and FN are the numbers of true positives, true negatives, false positives, and false negatives respectively. 
+%We define precision as the fraction of items we put in our positive class which correctly belong in our positive class, and recall as the fraction of items we put in our positive class of the total number of positive examples~\cite{hastie01statisticallearning}.
+%That is, 
+%\begin{equation}
+%	Precision = \frac{TP}{TP + FP}
+%\end{equation}
+%\begin{equation}
+%	Recall = \frac{TP}{TP + FN}
+%\end{equation}
+%So $Z$ is a predictive statistic if we optimize accuracy. 
+%This shows that precision is an artifact of minimizing the KL divergence and optimizing $Z$ with respect to $I(Y; Z)$, while recall is an artifact of optimizing $Z$ with respect to $I(X; Z)$.
 
 \section{Information Geometry of Neural Networks}
-A neural network, as mentioned briefly in chapter \ref{intro:nn}, is a form of connectionist machine learning which is a universal approximator under minor assumptions about the activation function~\cite{goodfellow2016deep}.
-In particular, a neural network connects many artificial neurons which receive input $x$ and emit output a prediction of $y$. 
-The forward pass of a single neuron gives us:
-$$\hat{y} = \sigma(w \cdot x + \beta)$$
-Where $\sigma$ is an activation function meeting the aforementioned assumptions, and $\beta$ is a bias vector which can be set to zero and not learned.
-For simplicity's sake, $\beta$ is omitted and assumed to be zero from this point without loss of generality.
-Then a two-layer neural network can be completely specified by layer weights:
-$$\xi = (w_1, ..., w_m; v_1, ..., v_m)$$
-and our simplified neural network output is given by:
-$$\hat{y} = f(x, \xi) = v\sigma(w \cdot x)$$
-During training, our loss surface $\mathcal{L}$ is a manifold given by the cross-entropy loss, which is equivalent to the KL divergence, $D(\hat{y}||y)$ up to an additive constant~\cite{goodfellow2016deep}.
+A neural network, as mentioned briefly in Chapter \ref{intro:nn}, is a form of connectionist machine learning which is a universal approximator under minor assumptions about the activation function~\cite{goodfellow2016deep}.
+In particular, a neural network connects many artificial neurons which receive input $x$ and emit an output which is a prediction of $y$. 
+From Equation~\ref{eqn: Neural network output}, the forward pass of a single neuron gives us:
+\begin{equation}
+\hat{y} = \sigma\bigg(\sum_{i=1}^{n}w_i x_i + \beta_{i} \bigg) = \sigma(w x + \beta)	
+\end{equation}
+Where $\sigma$ is an activation function meeting the aforementioned assumptions, and $\beta$ is a bias vector.
 
-Letting $\mathcal{W}$ be the parameter space of all neural networks allows us to specify $\xi$ as a coordinate system over $\mathcal{W}$, which is a manifold of dimension $N=(n+1)m$, where $n$ is the dimension of the input, and $m$ is the number of neurons in the hidden layer.
-This manifold is where learning occurs, with $\xi$ optimized by the results of minimizing $D(\hat{y}||y)$. 
-Since this manifold contains sets of points $\xi \neq \xi'$ for which $f(x, \xi) = f(x, \xi')$, then we cannot uniquely identify $\xi$ from the output. 
-This means we have some $\xi$ for which $f(x, \xi) = 0$ and so either $v$ or $w$ is the zero vector.
-Given this definition, we specify the singular region $R$ of $\mathcal{W}$:
-$$R = \{\xi | v = 0 \text{ or } w = 0\}$$
-Although our parameter space $\mathcal{W}$ contains a singularity, the loss surface is nonsingular.
-We make no use of this singularity and include it only for completeness, as it does not complicate our results.
+Let $\mathcal{S}$ be the manifold of neural network outputs $\mathcal{S} = \{\sigma(w x + \beta) : w \in \mathbb{R}^n, \beta \in \mathbb{R}\}$ parametrized by w and $\beta$. 
+We picture the manifold $\mathcal{S}$ as an (n+1)-dimensional smooth surface in the infinite-dimensional space of functions on $\mathbb{R}^n$. 
+Assume that our data is generated by some function $g$ such that $y = g(x)$. 
+Then if $g \in \mathcal{S}$ there exist $w^* \in \mathbb{R}^n$, $\beta^* \in \mathbb{R}$ such that we have an exact representation of $g$.
+In general, most target functions are not in $\mathcal{S}$ and so we must train the values
+\begin{equation}
+	(w^*, \beta^*) = \arg \min_{w, b} dist(g, \mathcal{S})
+\end{equation}
+which correspond to the coordinates of the orthogonal projection of $g$ onto the surface $\mathcal{S}$.
+Thus, our optimal parameter $\xi^* = (w^*, \beta^*)$, if it exists, is given by:
+\begin{equation}
+	\xi^* = \arg \min_{\xi} d(p(x, z), p(x, y; \xi) = \arg \min_{\xi} D(p(x, z) || p(x, y; \xi))
+\end{equation}
+\noindent Where D is the KL divergence specified in Equation~\ref{eqn: KL Divergence}.
+The relationship between the joint probability distribution and mutual information is specified in Equation~\ref{eqn: Mutual Info}.
+Since we optimize $\xi$ with respect to $D(\hat{y}||{y})$, as we approach the MNI point, the KL divergence approaches zero and our estimator $\xi$ approaches the Cram\'{e}r-Rao bound.
 
-The relationship between these two manifolds is as follows: as we descend the loss surface $\mathcal{L}$, we update the parameters of our neural network $\xi$ which serve as a coordinate system over $\mathcal{W}$. 
-Given $\mathcal{L}$ is the manifold of the KL divergence parameterized by $\hat{y}$, $y$, then the loss surface is determined uniquely by $x$ and $y$, with our location on that surface determined by $\xi$.
-Similarly, our coordinate system over the space of all neural networks is given by $\xi$ on $\mathcal{W}$, so $\mathcal{W}$ and $\mathcal{L}$ are homotopic.
-Then given a data set $X' = f(X)$ where $f: X \to X'$ is a homeomorphism, our loss surface $\mathcal{L}$ is now parameterized by $\hat{y'} = f(x', \xi)$, $y$, which we call $\mathcal{L'}$.
-$\mathcal{L} \sim \mathcal{L'}$ by homeomorphism and $\mathcal{L}$ is homotopic to $\mathcal{W}$ then $\mathcal{L'}$ is also homotopic to $\mathcal{W}$~\cite{hamstrom1974homotopy}.
+Returning to our derivation in Theorem~\ref{thm:MI invariance}, we see that the optimal parameter $\xi^*$ and the MNI point given by Equation~\ref{eqn:MNI} can be achieved for $X' = \phi(X)$, where $\phi$ is a homeomorphism, since any projection onto $\mathcal{S}$ will still be on the manifold, translated by the map $\phi$.
 
-Since we optimize $\xi$ with respect to $D(\hat{y}||{y})$, as we approach the MNI point, our loss function approaches zero and our estimator $\xi$ approaches the Cram\'{e}r-Rao bound.
-This suggests that not only is the ability of a network to learn a representation which is predictive of $y$ invariant to homeomorphism on the input data manifold, but also that the information bottleneck optimality is satisfied when $\xi$ is found which minimizes $D(\hat{y}||y)$.
-We return to our inequality of minimum necessary information, swapping $Z$ in the generic version above for $\hat{y}$ and find that as we approach the global optimum of the loss surface, we are minimizing $D(\hat{y}||y)$, which allows us to show:
+Therefore, not only is the ability of a network to learn a representation which is predictive of $y$ invariant to homeomorphism on the input data manifold, but also that the information bottleneck optimality is satisfied when $\xi$ is found which minimizes $D(\hat{y}||y)$.
+We return Equation~\ref{eqn:MNI} replacing $Z$ for $\hat{y}$ and find that as we approach the global minimum of the loss surface, we are minimizing $D(\hat{y}||y)$, which allows us to show:
 \begin{align*}
 \min D(\hat{y}||y) & = \min \sup_{\hat{Y} \leftarrow X \rightarrow Y}\frac{I(Y; \hat{Y})}{I(X; \hat{Y})} \\
 & = \min \sup_{f(X, \xi) \leftarrow X \rightarrow Y} \frac{I(Y; f(X, \xi))}{I(X; f(X, \xi))} \\
@@ -108,5 +163,5 @@ We return to our inequality of minimum necessary information, swapping $Z$ in th
 \end{align*}
 where $f_X(\xi)$ is the neural network with input $X$ and given parameters $\xi$.
 So our learning process is minimizing the mutual information between $Y$ and $\xi$, while maximizing the mutual information between $X$ and $\xi$.
-Thus we have demonstrated that since mutual information is invariant to homeomorphic maps on the input data; our loss surface is always homotopic to our network parameters; and therefore learning is invariant to any smooth, uniquely invertible map of the input data. 
-This theory is borne out and discussed in the context of our experiments in chapter \ref{chap:conclusion}
+This inequality also holds for $\xi'$, the optimal set of parameters for the input $X'$.
+This theory is discussed in the context of our experiments in Chapter \ref{chap:conclusion}.

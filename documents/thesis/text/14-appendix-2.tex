@@ -8,9 +8,11 @@
 \renewcommand{\thesection}{\Alph{section}.}
 
 %\addcontentsline{toc}{chapter}{Oligonucleotide and probe sequences}
-\chapter{Neural Network Models}
+\chapter{Mutual Information Estimation}
 \label{append:two}
 
-\section{Models}
+Our entropy estimation\footnote{Code is available at https://github.com/erickgalinkin/jhu\_masters/tree/master/code} relies on calculating the unique probabilities of values in our dataset and labels, as well as methods from Schwartz-Ziv and Tishby~\cite{shwartz2017opening} to compute the information using bins. 
 
+\section{Methodology}
+First, we compute the probabilities of the labels, and assign those values to a variable.
 
