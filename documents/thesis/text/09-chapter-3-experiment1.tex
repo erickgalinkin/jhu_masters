@@ -41,14 +41,15 @@ Raw, Wavelet NN                    & 98.89\%         & 1068\\
 
 \begin{figure}[h]
 \begin{center}
-\includegraphics[width=0.8\textwidth]{mnist_fc_infoplane}
-\caption{Fully-Connected Neural Network Information Plane.}
+\includegraphics[width=\textwidth]{mnist1}
+\caption{Fully-Connected Neural Network Information Plane}
 \label{fig:mnist fc infoplane}
 \centering
 \end{center}
 \end{figure}
 Figure~\ref{fig:mnist fc infoplane} was produced using the upper bound methodology from Saxe~\cite{saxe2019information}. 
 We see from all three subplots in Figure ~\ref{fig:mnist fc infoplane} that over 1000 training epochs, the mutual information about the labels for the first and last layers of the neural net is quite similar for our fully-connected neural networks irrespective of the initial data.
+We note that in Subplot C, the wavelet data yields a much lower amount of information about Y in the first training epoch, but quickly converges to the same point as the other two datasets, represented in subplots A and B.
 As seen in both Shwartz-Ziv~\cite{shwartz2017opening} and Saxe~\cite{saxe2019information}, the early training epochs cause the largest increase in mutual information with respect to the labels, decreasing over training. 
 We also observe a slight decrease in the amount of mutual information with respect to the data in later training epochs - which is expected as the learned representation becomes better able to map data to labels. 
 The fully connected network converges to an upper bound for the output layer which is within half a bit across all three datasets - raw, Fourier-transformed, and Wavelet-transformed - within the first 500 epochs and begin to reduce their mutual information about $X$ as the network overfits the dataset.
@@ -56,14 +57,16 @@ Since we use ReLU activation functions, we do not see a ``fitting phase and comp
 
 \begin{figure}[h!]
 \begin{center}
-\includegraphics[width=0.8\textwidth]{mnist_conv_infoplane}
+\includegraphics[width=\textwidth]{mnist2}
 \caption{Convolutional Neural Network Information Plane}
 \label{fig:mnist conv infoplane}
 \centering
 \end{center}
 \end{figure}
 
-We observe very similar results in Figure~\ref{fig:mnist conv infoplane} with the convolutional network, though there is some odd behavior in layer 0 in late training epochs, where mutual information in layer 0 with respect to the dataset $X$ increases and departs from our trend line.
+We observe very similar results in Figure~\ref{fig:mnist conv infoplane} with the convolutional network, and we can see that the convolutional layers, which for all 3 data representations, sits near the point $(10, 2.6)$ throughout training, do not budge from that point. 
+Meanwhile, the densely connected layers sit at the same point in the information plane as in Figure~\ref{fig:mnist fc infoplane}.
+We can also see that the output layer on the left moves to nearly the same point for all 3 models.
 
 Worth noting is that this phenomenon is consistent for our convolutional neural network across all 3 training data sets and does not appear to affect our accuracy in any negative way.
 This consistency is surprising, and we discuss it in the context of our other experiments in chapter~\ref{chap:conclusion}.
