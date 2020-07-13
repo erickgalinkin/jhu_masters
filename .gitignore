@@ -9,3 +9,7 @@
 # Ignore data directory #
 #########################
 /code/data/
+
+# Ignore giant raw data files #
+###############################
+/rawdata
