@@ -20,8 +20,6 @@ As in our previous experiment, order to ensure that deviations in the dataset di
 In experiment 1.c, the network is trained for 1000 epochs without early stopping, and at each training epoch, the mutual information between the labels and the network, $I(Y; M)$ and the mutual information between the data and the network, $I(X; M)$ is computed.
 This differs from the previous experiment as we do not concern ourselves with accuracy but instead wish to see and plot the change in mutual information during training.
 By running for 1000 epochs, we significantly overfit the training set, making this a poor approach for optimizing accuracy.
-We consider only the first and last layers of the neural network since the information tends in the same direction, with the propagation of information going from the output layer back through the intermediate layers.
-By plotting only the first and last layers in Figures~\ref{fig:malware infoplane fc} and \ref{fig:malware infoplane conv}, we end up with a more interpretable plot.
 The details of this plot are described below in~\ref{infoplane}
 
 \subsection{Mutual Information Computation}\label{MI computation}
@@ -34,21 +32,17 @@ In each experiment, the following data are collected for each epoch:
 \end{enumerate}
 These data are then stored in a file.
 After training, the data is loaded from the files.
-The entropy of the activity is computed by considering the KL-based upper bound on the entropy using techniques from section 4 of Kolchinsky and Tracey~\cite{kolchinsky2017estimating} to yield the entropy of the layer $H(M)$.
+The entropy of the activity is computed by considering the KL-based upper bound on the entropy using techniques from Section 4 of Kolchinsky and Tracey~\cite{kolchinsky2017estimating} to yield the entropy of the layer $H(M)$.
 This estimate is:
 \begin{equation}
 	H(M) = -\sum_{i} p_i \ln \sum_{j} p_j \exp(-D(m_i || m_j))
 \end{equation}
-where $p$ is either the probability density of the dataset, $X$, or the probability of the label $Y$ and $m$ is the probability density estimate of our network layer, $M$.
-This number is recorded and stored.
-Using the activity output recorded during training and the entropy of the data, the conditional entropy given the data, the conditional entropy $H(M|X)$ is computed by techniques in section 5 of Kolchinsky and Tracey
-Then, we compute $I(X;M) = H(M) - H(M|X)$ to provide our mutual information.
-
-For the entropy with respect to the labels, individual label probabilities are computed and used with the entropy of the activity to compute the conditional entropy of the activity given the label probabilities, giving us $H(M|Y)$
-This is used in conjunction with our earlier computation of $H(M)$ so that we can compute the mutual information $I(Y; M) = H(M) - H(M|Y)$.
+where $p$ is either the probability density of the dataset, $X$, or the probability of the label $Y$, and $m$ is the probability density estimate of our network layer, $M$.
+For the entropy with respect to the labels, individual label probabilities are computed and used with the entropy of the activity to compute the conditional entropy of the activity given the label probabilities, giving us $H(M|Y)$.
+This is used in conjunction with our computation of $H(M)$ so that we can compute the mutual information $I(Y; M) = H(M) - H(M|Y)$.
  
-These two mutual information values are then used to display information plane information as plotted in Figure~\ref{fig:malware infoplane fc}, Figure~\ref{fig:mnist fc infoplane} and others.
-This is identical to the method used in Saxe~\cite{saxe2019information}.
+These two mutual information values are then used to display information plane data as plotted in Figure~\ref{fig:malware infoplane fc}, Figure~\ref{fig:mnist fc infoplane} and others.
+These calculations are identical to the methods used in Saxe~\cite{saxe2019information}.
 
 \section{Data}\label{data}
 We leveraged four different datasets: Raw, Fourier-transformed, Wavelet-transformed, and a dataset consisting of summary statistics.
@@ -166,7 +160,7 @@ Due to the fact that there is a time component and a frequency component, the wa
 
 In our Wavelet Convolutional Neural Network, we take a 100-dimensional row vector as input.
 This input is then sent to the ``wavelet layer'' where it undergoes a Daubechies discrete wavelet transform.
-There are a very large number of wavelets which can be used in the discrete wavelet transform~\cite{mallat1999wavelet} but the Daubechies wavelet is easy to put into practice and has a unique inverse everywhere, so we use it here.
+There are a very large number of wavelets which can be used in the discrete wavelet transform~\cite{mallat1999wavelet}, but the Daubechies wavelet is easy to put into practice and has a unique inverse everywhere, so we use it here.
 The output is cast to a tensor which is multiplied against the transpose of the weight tensor.
 This output then undergoes an inverse discrete wavelet transform with respect to the same mother wavelet.
 
@@ -275,6 +269,7 @@ The shift toward the right in later epochs is suggestive of overfitting the data
 Meanwhile, the shift upward, particularly early on, indicates the network improving the amount of mutual information between $M$ and $Y$.
 We define the information plane as in Tishby~\cite{tishby2015deep}: the plane of the mutual information values that each layer preserves on the input and output.
 In the upper right of the plot, we see what appears to be a single point - this is all three hidden layers of the neural network, which do not see any change in mutual information.
+We verified during training that the weights were changing as expected in all hidden layers, and the network loss went down throughout training; only the mutual information did not change.
 The low level of mutual information may be due to the weak correlation relationship between $X$ and $Y$, which has a bivariate correlation of 0.2629 for the raw data.
 
 We can see in Figure~\ref{fig:malware infoplane fc}, subplots A, B, and C, that the amount of information changes very little. There is a high level of mutual information about $Y$ and $X$ captured in the hidden layers, while the output layer has almost no information about $Y$ and only learns less than 2 bits of information about $X$.
@@ -291,8 +286,8 @@ With respect to our summary dataset information plane in subplot D, we note that
 \end{figure}
 
 As we note in our discussion of minimum necessary information in Equation~\ref{eqn:MNI}, we achieve optimality only when $X$ uniquely determines $Y$, which does not appear to be the case for our dataset. 
-It is worth noting that all of the information planes in Figure~\ref{fig:malware infoplane fc} aside from the summary data in subplot D do not change their mutual information for the hidden layers and converge to the same mutual information for the output layer - the only layer which changes.
-It was experimentally verified that the weights and entropies of each individual layer did change throughout training, but the mutual information for the hidden layers remained stationary across 1000 epochs.
+It is worth noting that all of the information planes in Figure~\ref{fig:malware infoplane fc} aside from the summary data in subplot D do not change their mutual information for the hidden layers and converge to the same mutual information for the output layer - the only layer which sees a change in mutual information.
+It was experimentally verified that although the weights and entropies of each individual layer did change throughout training, the mutual information for the hidden layers remained stationary across 1000 epochs on the non-summary datasets.
 
 \begin{figure}[h!]
 \begin{center}
